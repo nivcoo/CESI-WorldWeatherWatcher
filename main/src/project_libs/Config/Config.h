@@ -3,10 +3,19 @@
 
 #include "Arduino.h"
 #include <EEPROM.h>
+struct Configuration {
+	int value;
+	String name;
+	int min;
+	int max;
+	int size;
+};
 class Config
 {
+
 public:
-    Config(byte version);
+    Config(byte version, Configuration *c);
+    
     
     void waitValues();
     
@@ -15,6 +24,8 @@ public:
     void showValues();
 
 private:
+	
+	Configuration *conf;
 
     void writeInt(int index, int value, int _size);
     int readInt(int index, int _size);

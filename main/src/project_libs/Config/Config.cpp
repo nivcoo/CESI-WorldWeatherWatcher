@@ -1,44 +1,37 @@
 #include "Config.h"
 
-typedef struct {
-  int value;
-  String name;
-  int min;
-  int max;
-  int size;
-} configuration;
-configuration Configuration[] {
-	{0, "VERSION", 0, 20, 1},
-	{1, "LUMINO", 0, 1, 1},
-	{255, "LUMIN_LOW", 0, 1023, 2},
-	{768, "LUMIN_HIGH", 0, 1023, 2},
-	{1, "TEMP_AIR", 0, 1, 1},
-	{ -10, "MIN_TEMP_AIR", -40, 85, 2},
-	{60, "MAX_TEMP_AIR", -40, 85, 2},
-	{1, "HYGR", 0, 1, 1},
-	{0, "HYGR_MINT", -40, 85, 2},
-	{50, "HYGR_MAXT", -40, 85, 2},
-	{1, "PRESSURE", 0, 1, 1},
-	{850, "PRESSURE_MIN", 300, 1100, 2},
-	{1080, "PRESSURE_MAX", 300, 1080, 2}
 
-};
 
-Config::Config(byte version)
+
+Config::Config(byte version, Configuration *c) :
+    conf(c)
 {
+	Serial.println(sizeof(Configuration));
+	Serial.println(sizeof(conf));
+	Serial.println("------------------");
+	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
+		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
+		Serial.print(conf[i].name);
+		Serial.print(" : ");
+		Serial.println(getValue(conf[i].name));
+	}
+	Serial.println("------------------");
+	Serial.println(sizeof(Configuration));
+	Serial.println(sizeof(conf));
+	
 	byte versionIndex = getConfigIndex("VERSION");
-	Configuration[versionIndex].value = version;
+	conf[versionIndex].value = version;
 
-	if(version != readInt(getIndex("VERSION"), Configuration[versionIndex].size)) 
+	if(version != readInt(getIndex("VERSION"), conf[versionIndex].size)) 
 		resetValues();
 }
 
 void Config::resetValues()
 {
 	int index = 0;
-	for (int i = 0; i < sizeof(Configuration) / sizeof(configuration); ++i) {
-		writeInt(index, Configuration[i].value, Configuration[i].size);
-		index += Configuration[i].size;
+	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+		writeInt(index, conf[i].value, conf[i].size);
+		index += conf[i].size;
 	}
 }
 
@@ -80,15 +73,15 @@ void Config::waitValues() {
 			return;
 		} 
 		int configIndex = getConfigIndex(name);
-		configuration config = Configuration[configIndex];
+		Configuration c = conf[configIndex];
 		if(!exist(name)) {
 			Serial.println("This parameter doesn't exist !");
 			return;
-		} else if (config.min > newValue || config.max < newValue) {
+		} else if (c.min > newValue || c.max < newValue) {
 			Serial.print("Place set a number between ");
-			Serial.print(config.min);
+			Serial.print(c.min);
 			Serial.print(" and ");
-			Serial.println(config.max);
+			Serial.println(c.max);
 			return;
 		} 
 		setValue(name, newValue);
@@ -105,8 +98,8 @@ void Config::waitValues() {
 bool Config::exist(String name) {
 	
 	bool exist = false;
-	for (int i = 0; i < sizeof(Configuration) / sizeof(configuration); ++i) {
-		if(Configuration[i].name != name)
+	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+		if(conf[i].name != name)
 			continue;
 		exist = true;
 		break;
@@ -117,21 +110,21 @@ bool Config::exist(String name) {
 
 int Config::getValue(String name) {
 	int index = getIndex(name);
-	return readInt(index, Configuration[getConfigIndex(name)].size);
+	return readInt(index, conf[getConfigIndex(name)].size);
 }
 
 
 void Config::setValue(String name, int newValue){
 	int index = getIndex(name);
 	int indexConfig = getConfigIndex(name);
-	writeInt(index, newValue, Configuration[indexConfig].size);
+	writeInt(index, newValue, conf[indexConfig].size);
 }
 
 int Config::getConfigIndex(String name) {
 	
 	int index = 0;
-	for (int i = 0; i < sizeof(Configuration) / sizeof(configuration); ++i) {
-		if(Configuration[i].name != name)
+	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+		if(conf[i].name != name)
 			continue;
 		index = i;
 		break;
@@ -144,10 +137,10 @@ int Config::getConfigIndex(String name) {
 int Config::getIndex(String name) {
 	
 	int index = 0;
-	for (int i = 0; i < sizeof(Configuration) / sizeof(configuration); ++i) {
-		if(Configuration[i].name == name)
+	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+		if(conf[i].name == name)
 			break;
-		index += Configuration[i].size;
+		index += conf[i].size;
 		
 	}
 	return index;
@@ -180,12 +173,14 @@ int Config::readInt(int index, int _size) {
 }
 
 void Config::showValues() {
+	Serial.println(sizeof(Configuration));
+	Serial.println(sizeof(conf));
 	Serial.println("------------------");
-	for (int i = 0; i < sizeof(Configuration) / sizeof(configuration); ++i) {
-		//Serial.println(get(Configuration[i].name) readInt(index, Configuration[i].size));
-		Serial.print(Configuration[i].name);
+	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
+		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
+		Serial.print(conf[i].name);
 		Serial.print(" : ");
-		Serial.println(getValue(Configuration[i].name));
+		Serial.println(getValue(conf[i].name));
 	}
 	Serial.println("------------------");
 	
