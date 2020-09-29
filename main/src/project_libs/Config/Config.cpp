@@ -111,14 +111,14 @@ int Config::get(String name, int type) {
 	
 	int result = 0;
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
-		
+		if(type == 1) // get index in config
+			result = i;
 		if(conf[i].name == name)
 			break;
 		if(type == 0) {
 			result += conf[i].size;
 		}
-		if(type == 1) // get index in config
-			result = i;
+		
 		if(type == 2) // check if exist
 			result = 1;
 		

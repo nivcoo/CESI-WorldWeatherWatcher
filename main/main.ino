@@ -2,7 +2,7 @@
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 
-byte version = 2;
+byte version = 1;
 
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
 int mode = 3;
@@ -31,7 +31,7 @@ void loop()
   //leds.color("BLUE", 2);
   //leds.color("RED");
 
-  leds.color("YELLOW", 1, "ORANGE", 3);
+  leds.color("RED", 10, "YELLOW", 3);
   //delay(300);
 
   if(mode == 3)
