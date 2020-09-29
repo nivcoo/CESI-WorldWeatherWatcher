@@ -31,7 +31,7 @@ void loop()
   //leds.color("BLUE", 2);
   //leds.color("RED");
 
-  leds.color("RED", 1, "BLUE", 3);
+  leds.color("YELLOW", 1, "ORANGE", 3);
   //delay(300);
 
   if(mode == 3)
