@@ -3,18 +3,18 @@
 
 #include "Arduino.h"
 #include <EEPROM.h>
-struct Configuration {
+typedef struct {
 	int value;
 	String name;
 	int min;
 	int max;
 	int size;
-};
+} Configuration;
 class Config
 {
 
 public:
-    Config(byte version, Configuration *c);
+    Config(byte version);
     
     
     void waitValues();
@@ -24,14 +24,10 @@ public:
     void showValues();
 
 private:
-	
-	Configuration *conf;
 
     void writeInt(int index, int value, int _size);
     int readInt(int index, int _size);
-    int getConfigIndex(String name);
-    int getIndex(String name);
-    bool exist(String name);
+    int get(String name, int type);
     
     void resetValues();
 };

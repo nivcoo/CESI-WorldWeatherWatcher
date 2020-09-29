@@ -1,28 +1,28 @@
 #include "Config.h"
 
+Configuration conf[] {
+  {0, "VERSION", 0, 20, 1},
+  {1, "LUMINO", 0, 1, 1},
+  {255, "LUMIN_LOW", 0, 1023, 2},
+  {768, "LUMIN_HIGH", 0, 1023, 2},
+  {1, "TEMP_AIR", 0, 1, 1},
+  { -10, "MIN_TEMP_AIR", -40, 85, 2},
+  {60, "MAX_TEMP_AIR", -40, 85, 2},
+  {1, "HYGR", 0, 1, 1},
+  {0, "HYGR_MINT", -40, 85, 2},
+  {50, "HYGR_MAXT", -40, 85, 2},
+  {1, "PRESSURE", 0, 1, 1},
+  {850, "PRESSURE_MIN", 300, 1100, 2},
+  {1080, "PRESSURE_MAX", 300, 1080, 2}
 
+};
 
-
-Config::Config(byte version, Configuration *c) :
-    conf(c)
+Config::Config(byte version)
 {
-	Serial.println(sizeof(Configuration));
-	Serial.println(sizeof(conf));
-	Serial.println("------------------");
-	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
-		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
-		Serial.print(conf[i].name);
-		Serial.print(" : ");
-		Serial.println(getValue(conf[i].name));
-	}
-	Serial.println("------------------");
-	Serial.println(sizeof(Configuration));
-	Serial.println(sizeof(conf));
-	
-	byte versionIndex = getConfigIndex("VERSION");
+	byte versionIndex = get("VERSION", 1);
 	conf[versionIndex].value = version;
 
-	if(version != readInt(getIndex("VERSION"), conf[versionIndex].size)) 
+	if(version != readInt(get("VERSION", 0), conf[versionIndex].size)) 
 		resetValues();
 }
 
@@ -49,7 +49,6 @@ String splitString(String data, char separator, int index)
         strIndex[1] = (i == maxIndex) ? i+1 : i;
     }
   }
-
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
@@ -72,9 +71,9 @@ void Config::waitValues() {
 			showValues();
 			return;
 		} 
-		int configIndex = getConfigIndex(name);
+		int configIndex = get(name, 2);
 		Configuration c = conf[configIndex];
-		if(!exist(name)) {
+		if(!get(name, 2)) {
 			Serial.println("This parameter doesn't exist !");
 			return;
 		} else if (c.min > newValue || c.max < newValue) {
@@ -88,63 +87,41 @@ void Config::waitValues() {
 		Serial.print("New value for ");
 		Serial.print(name);
 		Serial.print(" = ");
-		Serial.println(newValue);
-		
-		 
-		
+		Serial.println(newValue); 
 	}
 }
 
-bool Config::exist(String name) {
-	
-	bool exist = false;
-	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
-		if(conf[i].name != name)
-			continue;
-		exist = true;
-		break;
-	}
-	return exist;
-	
-}
 
 int Config::getValue(String name) {
-	int index = getIndex(name);
-	return readInt(index, conf[getConfigIndex(name)].size);
+	int index = get(name, 0);
+	return readInt(index, conf[get(name, 2)].size);
 }
 
 
 void Config::setValue(String name, int newValue){
-	int index = getIndex(name);
-	int indexConfig = getConfigIndex(name);
+	int index = get(name, 0);
+	int indexConfig = get(name, 2);
 	writeInt(index, newValue, conf[indexConfig].size);
 }
 
-int Config::getConfigIndex(String name) {
-	
-	int index = 0;
-	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
-		if(conf[i].name != name)
-			continue;
-		index = i;
-		break;
-	}
-	return index;
-	
-}
 
 
-int Config::getIndex(String name) {
+
+int Config::get(String name, int type) {
 	
-	int index = 0;
-	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+	int result = 0;
+	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		if(conf[i].name == name)
 			break;
-		index += conf[i].size;
+		if(type == 0) //get index in eeprom
+			result += conf[i].size;
+		if(type == 1) // get index in config
+			result = i;
+		if(type == 2) // check if exist
+			result = 1;
 		
 	}
-	return index;
-	
+	return result;
 }
 
 void Config::writeInt(int index, int value, int _size) {
@@ -173,16 +150,14 @@ int Config::readInt(int index, int _size) {
 }
 
 void Config::showValues() {
-	Serial.println(sizeof(Configuration));
-	Serial.println(sizeof(conf));
 	Serial.println("------------------");
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
-		Serial.print(conf[i].name);
+		String name = conf[i].name;
+		Serial.print(name);
 		Serial.print(" : ");
-		Serial.println(getValue(conf[i].name));
+		Serial.println(getValue(name));
 	}
 	Serial.println("------------------");
-	
 }
 
