@@ -29,7 +29,7 @@ Config::Config(byte version)
 void Config::resetValues()
 {
 	int index = 0;
-	for (int i = 0; i < sizeof(conf) / sizeof(conf); ++i) {
+	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		writeInt(index, conf[i].value, conf[i].size);
 		index += conf[i].size;
 	}
@@ -71,7 +71,7 @@ void Config::waitValues() {
 			showValues();
 			return;
 		} 
-		int configIndex = get(name, 2);
+		int configIndex = get(name, 1);
 		Configuration c = conf[configIndex];
 		if(!get(name, 2)) {
 			Serial.println("This parameter doesn't exist !");
@@ -94,13 +94,13 @@ void Config::waitValues() {
 
 int Config::getValue(String name) {
 	int index = get(name, 0);
-	return readInt(index, conf[get(name, 2)].size);
+	return readInt(index, conf[get(name, 1)].size);
 }
 
 
 void Config::setValue(String name, int newValue){
 	int index = get(name, 0);
-	int indexConfig = get(name, 2);
+	int indexConfig = get(name, 1);
 	writeInt(index, newValue, conf[indexConfig].size);
 }
 
@@ -111,14 +111,17 @@ int Config::get(String name, int type) {
 	
 	int result = 0;
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
+		
 		if(conf[i].name == name)
 			break;
-		if(type == 0) //get index in eeprom
+		if(type == 0) {
 			result += conf[i].size;
+		}
 		if(type == 1) // get index in config
 			result = i;
 		if(type == 2) // check if exist
 			result = 1;
+		
 		
 	}
 	return result;

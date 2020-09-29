@@ -1,5 +1,6 @@
-#include "src/imported_libs/ChainableLED/ChainableLED.h"
+
 #include "src/project_libs/Config/Config.h"
+#include "src/project_libs/Led/Led.h"
 
 byte version = 2;
 
@@ -8,7 +9,10 @@ int mode = 3;
 
 Config config(version);
 
-ChainableLED leds(7, 8, 1);
+
+Led leds(7, 8, 1);
+
+//ChainableLED leds(7, 8, 1);
 
 
 
@@ -18,10 +22,17 @@ void setup()
   Serial.begin(9600);
   config.showValues();
   //config.setValue("LUMINO", 0);
+  
 }
 
 void loop()
 {
+
+  //leds.color("BLUE", 2);
+  //leds.color("RED");
+
+  leds.color("RED", 1, "BLUE", 3);
+  //delay(300);
 
   if(mode == 3)
     config.waitValues();
