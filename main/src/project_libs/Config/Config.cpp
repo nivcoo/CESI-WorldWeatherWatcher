@@ -113,14 +113,17 @@ int Config::get(String name, int type) {
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		if(type == 1) // get index in config
 			result = i;
-		if(conf[i].name == name)
+		if(conf[i].name == name) {
+		
+			if(type == 2) // check if exist in config
+				result = 1;
 			break;
-		if(type == 0) {
+		}
+		if(type == 0) { // check index in eeprom
 			result += conf[i].size;
 		}
 		
-		if(type == 2) // check if exist
-			result = 1;
+		
 		
 		
 	}
