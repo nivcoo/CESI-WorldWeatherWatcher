@@ -59,9 +59,9 @@ String splitString(String data, char separator, int index)
 }
 
 void Config::getVersion() {
-	Serial.print("The version of program is : ");
+	Serial.print(F("The version of program is : "));
 	Serial.println(getValue("VERSION"));
-	Serial.print("The batch number is : ");
+	Serial.print(F("The batch number is : "));
 	Serial.println(_batchNumber);
 }
 
@@ -94,19 +94,19 @@ void Config::waitValues() {
 		int configIndex = get(name, 1);
 		Configuration c = conf[configIndex];
 		if(!get(name, 2)) {
-			Serial.println("This parameter doesn't exist !");
+			Serial.println(F("This parameter doesn't exist !"));
 			return;
 		} else if (c.min > newValue || c.max < newValue) {
-			Serial.print("Place set a number between ");
+			Serial.print(F("Place set a number between "));
 			Serial.print(c.min);
-			Serial.print(" and ");
+			Serial.print(F(" and "));
 			Serial.println(c.max);
 			return;
 		} 
 		setValue(name, newValue);
-		Serial.print("New value for ");
+		Serial.print(F("New value for "));
 		Serial.print(name);
-		Serial.print(" = ");
+		Serial.print(F(" = "));
 		Serial.println(newValue); 
 	}
 }
@@ -173,15 +173,15 @@ int Config::readInt(int index, int _size) {
 }
 
 void Config::showValues() {
-	Serial.println("------------------");
+	Serial.println(F("------------------"));
 	getVersion();
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
 		String name = conf[i].name;
 		Serial.print(name);
-		Serial.print(" : ");
+		Serial.print(F(" : "));
 		Serial.println(getValue(name));
 	}
-	Serial.println("------------------");
+	Serial.println(F("------------------"));
 }
 

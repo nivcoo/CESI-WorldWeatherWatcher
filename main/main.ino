@@ -2,29 +2,23 @@
 #include "src/project_libs/Led/Led.h"
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
-
+//#include <SD.h>
 tmElements_t tm;
 BME280I2C bme;
-
-byte version = 2;
-String batchNumber = "20200930A";
-
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
 int previousMode = 0;
 int mode = 0;
-Config config(version, batchNumber);
+Config config(2, "0930A");
 Led leds(8, 9, 1);
 DS1307RTC clock;
-BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
-BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 
 const byte buttonPinGreen = 2;
 const byte buttonPinRed = 3;
-
-float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0), sensorLightValue(0);
+int sensorLightValue(0);
+float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
 
 void setup()
 {
@@ -53,29 +47,27 @@ bool setDate(const char *str)
   RTC.write(tm);
 }
 
-
-
 void showDate()
 {
   if (RTC.read(tm)) {
     Serial.print(tm.Hour, DEC);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.print(tm.Minute, DEC);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.print(tm.Second, DEC);
-    Serial.print("  ");
+    Serial.print(F("  "));
     Serial.print(tm.Day, DEC);
-    Serial.print("/");
+    Serial.print(F("/"));
     Serial.print(tm.Month, DEC);
-    Serial.print("/");
+    Serial.print(F("/"));
     Serial.print(tmYearToCalendar(tm.Year), DEC);
-    Serial.print(" ");
-    Serial.println(" ");
+    Serial.print(F(" "));
+    Serial.println(F(" "));
   } else {
     if (RTC.chipPresent()) {
-      Serial.println("The RTC is stopped.  Please run the SetTime");
+      Serial.println(F("The RTC is stopped. Please run the SetTime"));
     } else {
-      Serial.println("RTC read error!  Please check the circuitry.");
+      Serial.println(F("RTC read error! Please check the circuitry."));
     }
   }
 }
@@ -89,7 +81,6 @@ void clickButtonRedEvent() {
   buttonPressedMs = millis();
   buttonPressed = true;
 }
-
 
 void pressedButtonGreen() {
   if (mode == 0)
@@ -114,19 +105,19 @@ void changeMode(int _mode) {
   //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
   switch (_mode) {
     case 0:
-      name = "normal";
+      name = F("normal");
       break;
     case 1:
-      name = "eco";
+      name = F("eco");
       break;
     case 2:
-      name = "maintenance";
+      name = F("maintenance");
       break;
     case 3:
-      name = "configuration";
+      name = F("configuration");
       break;
   }
-  Serial.print("The new mode is ");
+  Serial.print(F("The new mode is "));
   Serial.println(name);
 }
 
@@ -174,6 +165,9 @@ bool checkError() {
   }
 
 
+   
+
+
   //gps error
   //leds.color("RED", 1, "YELLOW", 1);
   //sensor error
@@ -190,6 +184,8 @@ bool checkError() {
 
 void getSensorValues() {
   sensorLightValue = analogRead(0);
+  BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
+  BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
 }
 
