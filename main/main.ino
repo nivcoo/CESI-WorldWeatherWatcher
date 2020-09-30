@@ -1,7 +1,8 @@
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 #include "/usr/share/arduino/libraries/Wire/Wire.h"
-#include <DS1307.h>
+#include "src/imported_libs/DS1307/DS1307.h"
+
 
 byte version = 2;
 String batchNumber = "20200930A";
@@ -139,7 +140,7 @@ void loop()
   else if (mode == 3) {
     long lastActivity = config.getLastActivity();
     //go to normal if inactivity > 30m
-    if (millis() - lastActivity > (30*60 * 1000)) {
+    if (millis() - lastActivity > (30 * 60 * 1000)) {
       changeMode(0);
     }
     config.waitValues();
