@@ -88,8 +88,6 @@ void pressedButtonGreen() {
     changeMode(1);
   else if (mode == 1)
     changeMode(0);
-  else if (mode == 3)
-    changeMode(0);
 }
 
 void pressedButtonRed() {
