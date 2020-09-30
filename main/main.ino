@@ -12,25 +12,11 @@ Config config(version);
 Led leds(8, 9, 1);
 DS1307 clock;
 
+long buttonPressedMs = millis();
+bool buttonPressed = false;
 
 const byte buttonPinGreen = 2;
 const byte buttonPinRed = 3;
-
-void clickButtonGreenEvent() {
-  Serial.println("click green");
-  long ms = millis();
-  for (;;) {
-    if ((millis() - ms) > (5 * 1000)) {
-      if (digitalRead(buttonPinGreen) == 0)
-        Serial.println("good 5s");
-      break;
-    }
-  }
-}
-
-void clickButtonRedEvent() {
-  Serial.println("click red");
-}
 
 void setup()
 {
@@ -69,8 +55,41 @@ void showDate()
   Serial.println(" ");
 }
 
+void clickButtonGreenEvent() {
+  Serial.println("click green");
+  buttonPressedMs = millis();
+  buttonPressed = true;
+}
+
+void clickButtonRedEvent() {
+  Serial.println("click red");
+  buttonPressedMs = millis();
+  buttonPressed = true;
+}
+
+
+void pressedButtonGreen() {
+  Serial.println("good 5s green");
+}
+
+void pressedButtonRed() {
+  Serial.println("good 5s red");
+}
+
+void checkPressedButton() {
+  if ((millis() - buttonPressedMs) > (5 * 1000) && buttonPressed) {
+    if (digitalRead(buttonPinGreen) == 0) {
+      pressedButtonGreen();
+    } else if (digitalRead(buttonPinRed) == 0) {
+      pressedButtonRed();
+    }
+    buttonPressed = false;
+  }
+}
+
 void loop()
 {
+  checkPressedButton();
 
   if (mode == 0)
     leds.color("GREEN");
@@ -83,103 +102,4 @@ void loop()
 
   if (mode == 3)
     config.waitValues();
-
-  /**Serial.print(hue);
-    Serial.print(" ");**/
 }
-
-/**void write_String(char index, String data)
-  {
-  int _size = data.length();
-  int i;
-  for (i = 0; i < _size; i++)
-  {
-    EEPROM.update(index + i, data[i]);
-  }
-  EEPROM.update(index + _size, '\0');
-  //EEPROM.commit();
-  }
-
-  String read_String(char add)
-  {
-  int i;
-  char data[100];
-  int len = 0;
-  unsigned char k;
-  k = EEPROM.read(add);
-  while (k != '\0' && len < 500)
-  {
-    k = EEPROM.read(add + len);
-    data[len] = k;
-    len++;
-  }
-  data[len] = '\0';
-  return String(data);
-  }
-
-  void showEEPROM()
-  {
-  pinMode(13, OUTPUT);
-  for (int i = 0 ; i < EEPROM.length() ; i++) {
-    Serial.println(EEPROM.read(i));
-  }
-  digitalWrite(13, HIGH);
-  }
-  void clearEEPROM()
-  {
-  pinMode(13, OUTPUT);
-  for (int i = 0 ; i < EEPROM.length() ; i++) {
-    EEPROM.update(i, 0);
-  }
-  digitalWrite(13, HIGH);
-  }**/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**byte tes = 0;
-
-  ChainableLED leds(7, 8, 1);
-  void setup()
-  {
-  Serial.begin(9600);
-  }
-
-  float hue = 0.0;
-  boolean up = true;
-
-  void loop()
-  {
-
-    leds.setColorHSB(0, hue, 1, 0);
-
-  delay(50);
-
-  if (up)
-    hue+= 0.025;
-  else
-    hue-= 0.025;
-
-  if (hue>=1.0 && up)
-    up = false;
-  else if (hue<=0.0 && !up)
-    up = true;
-
-  hue = analogRead(A0)/100;
-  hue = hue/10;
-  Serial.print(hue);
-  Serial.print(" ");
-  }**/
