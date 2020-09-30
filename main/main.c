@@ -1,8 +1,8 @@
-
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 #include "/usr/share/arduino/libraries/Wire/Wire.h"
-#include <DS1307.h>
+#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
+
 
 byte version = 2;
 String batchNumber = "20200930A";
@@ -12,13 +12,11 @@ int previousMode = 0;
 int mode = 0;
 Config config(version, batchNumber);
 Led leds(8, 9, 1);
-DS1307 clock;
+DS1307RTC clock;
 
 long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
-
-long lastActivity = 0;
 
 const byte buttonPinGreen = 2;
 const byte buttonPinRed = 3;
@@ -140,10 +138,9 @@ void loop()
   else if (mode == 2) {
   }
   else if (mode == 3) {
-    if (Serial.available() > 0) {
-      lastActivity = millis();
-    }
-    if (millis() - lastActivity > (5 * 1000)) {
+    long lastActivity = config.getLastActivity();
+    //go to normal if inactivity > 30m
+    if (millis() - lastActivity > (30 * 60 * 1000)) {
       changeMode(0);
     }
     config.waitValues();

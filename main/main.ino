@@ -1,7 +1,7 @@
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 #include "/usr/share/arduino/libraries/Wire/Wire.h"
-#include "src/imported_libs/DS1307/DS1307.h"
+#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 
 
 byte version = 2;
@@ -12,7 +12,7 @@ int previousMode = 0;
 int mode = 0;
 Config config(version, batchNumber);
 Led leds(8, 9, 1);
-DS1307 clock;
+DS1307RTC clock;
 
 long buttonPressedMs = millis();
 bool buttonPressed = false;
