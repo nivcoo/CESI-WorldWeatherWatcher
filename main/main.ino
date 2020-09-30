@@ -1,4 +1,3 @@
-
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 #include "/usr/share/arduino/libraries/Wire/Wire.h"
