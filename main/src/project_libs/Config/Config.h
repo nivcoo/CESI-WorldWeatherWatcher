@@ -2,7 +2,8 @@
 #define __Config_h__
 
 #include "Arduino.h"
-#include "/usr/share/arduino/libraries/EEPROM/EEPROM.h"
+#include <EEPROM.h>
+//#include "/usr/share/arduino/libraries/EEPROM/EEPROM.h"
 typedef struct {
 	int value;
 	String name;

@@ -1,8 +1,9 @@
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
-#include "/usr/share/arduino/libraries/Wire/Wire.h"
+#include <Wire.h>
+//#include "/usr/share/arduino/libraries/Wire/Wire.h"
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
-
+tmElements_t tm;
 
 byte version = 2;
 String batchNumber = "20200930A";
@@ -13,7 +14,6 @@ int mode = 0;
 Config config(version, batchNumber);
 Led leds(8, 9, 1);
 DS1307RTC clock;
-
 long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
@@ -25,7 +25,7 @@ void setup()
 {
 
   Serial.begin(9600);
-  clock.begin();
+  //clock.begin();
   //clock.fillByYMD(2020,9,29);
   //clock.fillByHMS(16,12,20);
   //clock.fillDayOfWeek(TUE);
@@ -36,36 +36,47 @@ void setup()
   pinMode(buttonPinGreen, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPinRed), clickButtonRedEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(buttonPinGreen), clickButtonGreenEvent, CHANGE);
+  
   showDate();
+
 
 }
 
 void showDate()
 {
-  clock.getTime();
-  Serial.print(clock.hour, DEC);
-  Serial.print(":");
-  Serial.print(clock.minute, DEC);
-  Serial.print(":");
-  Serial.print(clock.second, DEC);
-  Serial.print("  ");
-  Serial.print(clock.dayOfMonth, DEC);
-  Serial.print("/");
-  Serial.print(clock.month, DEC);
-  Serial.print("/");
-  Serial.print(clock.year + 2000, DEC);
-  Serial.print(" ");
-  Serial.println(" ");
+
+  if (RTC.read(tm)) {
+    Serial.print(tm.Hour, DEC);
+    Serial.print(":");
+    Serial.print(tm.Minute, DEC);
+    Serial.print(":");
+    Serial.print(tm.Second, DEC);
+    Serial.print("  ");
+    Serial.print(tm.Day, DEC);
+    Serial.print("/");
+    Serial.print(tm.Month, DEC);
+    Serial.print("/");
+    Serial.print(tmYearToCalendar(tm.Year), DEC);
+    Serial.print(" ");
+    Serial.println(" ");
+  } else {
+    if (RTC.chipPresent()) {
+      Serial.println("The DS1307 is stopped.  Please run the SetTime");
+      Serial.println("example to initialize the time and begin running.");
+      Serial.println();
+    } else {
+      Serial.println("DS1307 read error!  Please check the circuitry.");
+      Serial.println();
+    }
+  }
 }
 
 void clickButtonGreenEvent() {
-  Serial.println("click green");
   buttonPressedMs = millis();
   buttonPressed = true;
 }
 
 void clickButtonRedEvent() {
-  Serial.println("click red");
   buttonPressedMs = millis();
   buttonPressed = true;
 }
@@ -76,6 +87,8 @@ void pressedButtonGreen() {
   if (mode == 0)
     changeMode(1);
   else if (mode == 1)
+    changeMode(0);
+  else if (mode == 3)
     changeMode(0);
 }
 
@@ -134,13 +147,16 @@ void loop()
     leds.color("GREEN");
   }
   else if (mode == 1) {
+    leds.color("BLUE");
   }
   else if (mode == 2) {
+    leds.color("ORANGE");
   }
   else if (mode == 3) {
+    leds.color("YELLOW");
     long lastActivity = config.getLastActivity();
     //go to normal if inactivity > 30m
-    if (millis() - lastActivity > (30 * 60 * 1000)) {
+    if ((millis() - lastActivity)/100 > (30 * 60*10)) {
       changeMode(0);
     }
     config.waitValues();
