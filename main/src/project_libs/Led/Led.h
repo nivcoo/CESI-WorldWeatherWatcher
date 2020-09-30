@@ -14,7 +14,7 @@ class Led
 {
 
 public:
-    Led(byte pin, byte pin_data, byte led_number);
+    Led(byte pin, byte pinData, byte ledNumber);
     
     void color(String color);
     void color(String firstColor, byte firstTime, String secondColor, byte secondTime);
@@ -23,8 +23,8 @@ public:
 private:
 
 	byte _pin;
-    byte _pin_data;
-    byte _led_number;
+    byte _pinData;
+    byte _ledNumber;
     
     byte getIndex(String name);
     

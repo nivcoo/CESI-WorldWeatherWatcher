@@ -4,16 +4,21 @@
 #include <Wire.h>
 #include <DS1307.h>
 
-byte version = 1;
+byte version = 2;
+String batchNumber = "20200930A";
 
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
+int previousMode = 0;
 int mode = 0;
-Config config(version);
+Config config(version, batchNumber);
 Led leds(8, 9, 1);
 DS1307 clock;
 
 long buttonPressedMs = millis();
 bool buttonPressed = false;
+bool checkStartPressedButton = true;
+
+long lastActivity = 0;
 
 const byte buttonPinGreen = 2;
 const byte buttonPinRed = 3;
@@ -69,14 +74,51 @@ void clickButtonRedEvent() {
 
 
 void pressedButtonGreen() {
-  Serial.println("good 5s green");
+
+  if (mode == 0)
+    changeMode(1);
+  else if (mode == 1)
+    changeMode(0);
 }
 
 void pressedButtonRed() {
-  Serial.println("good 5s red");
+  if (mode == 2 || mode == 3)
+    changeMode(previousMode);
+  else {
+    previousMode = mode;
+    changeMode(2);
+  }
+}
+
+void changeMode(int _mode) {
+  mode = _mode;
+  Serial.print("The new mode is ");
+  String name = "";
+  //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
+  switch (_mode) {
+    case 0:
+      name = "normal";
+      break;
+    case 1:
+      name = "eco";
+      break;
+    case 2:
+      name = "maintenance";
+      break;
+    case 3:
+      name = "configuration";
+      break;
+  }
+  Serial.println(name);
 }
 
 void checkPressedButton() {
+  if (checkStartPressedButton && digitalRead(buttonPinRed) == 0) {
+    // go into config mode
+    changeMode(3);
+  }
+  checkStartPressedButton = false;
+
   if ((millis() - buttonPressedMs) > (5 * 1000) && buttonPressed) {
     if (digitalRead(buttonPinGreen) == 0) {
       pressedButtonGreen();
@@ -90,16 +132,26 @@ void checkPressedButton() {
 void loop()
 {
   checkPressedButton();
-
-  if (mode == 0)
+  if (mode == 0) {
     leds.color("GREEN");
+  }
+  else if (mode == 1) {
+  }
+  else if (mode == 2) {
+  }
+  else if (mode == 3) {
+    if (Serial.available() > 0) {
+      lastActivity = millis();
+    }
+    if (millis() - lastActivity > (5 * 1000)) {
+      changeMode(0);
+    }
+    config.waitValues();
+  }
 
   //leds.color("BLUE", 2);
   //leds.color("RED");
 
   //leds.color("RED", 10, "YELLOW", 3);
   //delay(300);
-
-  if (mode == 3)
-    config.waitValues();
 }

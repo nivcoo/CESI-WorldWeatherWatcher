@@ -13,11 +13,15 @@ Configuration conf[] {
   {50, "HYGR_MAXT", -40, 85, 2},
   {1, "PRESSURE", 0, 1, 1},
   {850, "PRESSURE_MIN", 300, 1100, 2},
-  {1080, "PRESSURE_MAX", 300, 1080, 2}
+  {1080, "PRESSURE_MAX", 300, 1080, 2},
+  {10, "LOG_INTERVALL", 1, 255, 1},
+  {4096, "FILE_MAX_SIZE", 1024, 8192, 2},
+  {30, "TIMEOUT", 1, 255, 1}
 
 };
 
-Config::Config(byte version)
+Config::Config(byte version, String batchNumber) :
+	_batchNumber(batchNumber)
 {
 	byte versionIndex = get("VERSION", 1);
 	conf[versionIndex].value = version;
@@ -52,6 +56,12 @@ String splitString(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
+void Config::getVersion() {
+	Serial.print("The version of program is : ");
+	Serial.println(getValue("VERSION"));
+	Serial.print("The batch number is : ");
+	Serial.println(_batchNumber);
+}
 
 void Config::waitValues() {
 	String data;
@@ -64,9 +74,13 @@ void Config::waitValues() {
 		newValue = splitString(data, '=', 1).toInt();
 		name.trim();
 		name.toUpperCase();
-		if(name == "SHOW" || name == "RESET") {
+		if(name == "SHOW" || name == "RESET" || name == "VERSION") {
+			
 			if(name == "RESET") {
 				resetValues();
+			} else if(name == "VERSION") {
+				getVersion();
+				return;
 			}
 			showValues();
 			return;
@@ -122,10 +136,6 @@ int Config::get(String name, int type) {
 		if(type == 0) { // check index in eeprom
 			result += conf[i].size;
 		}
-		
-		
-		
-		
 	}
 	return result;
 }
@@ -157,6 +167,7 @@ int Config::readInt(int index, int _size) {
 
 void Config::showValues() {
 	Serial.println("------------------");
+	getVersion();
 	for (int i = 0; i < sizeof(conf) / sizeof(Configuration); ++i) {
 		//Serial.println(get(conf[i].name) readInt(index, conf[i].size));
 		String name = conf[i].name;

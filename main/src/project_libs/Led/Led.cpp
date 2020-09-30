@@ -12,8 +12,8 @@ Color colors[] {
 };
 
 
-Led::Led(byte pin, byte pin_data, byte led_number) :
-	_pin(pin), _pin_data(pin_data), _led_number(led_number)
+Led::Led(byte pin, byte pinData, byte ledNumber) :
+	_pin(pin), _pinData(pinData), _ledNumber(ledNumber)
 {
 	
 }
@@ -34,7 +34,7 @@ byte Led::getIndex(String name) {
 void Led::setColor(String color)
 {
 	byte index = getIndex(color);
-	ChainableLED leds(_pin, _pin_data, _led_number);
+	ChainableLED leds(_pin, _pinData, _ledNumber);
 	leds.setColorRGB(0, colors[index].r, colors[index].g, colors[index].b);
 	
 }

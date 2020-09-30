@@ -14,7 +14,7 @@ class Config
 {
 
 public:
-    Config(byte version);
+    Config(byte version, String batchNumber);
     
     
     void waitValues();
@@ -22,8 +22,12 @@ public:
     int getValue(String name);
     void setValue(String name, int newValue);
     void showValues();
+    
+    void getVersion();
 
 private:
+	
+	String _batchNumber;
 
     void writeInt(int index, int value, int _size);
     int readInt(int index, int _size);
