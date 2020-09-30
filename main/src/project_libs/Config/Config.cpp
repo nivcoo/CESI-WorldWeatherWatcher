@@ -20,6 +20,8 @@ Configuration conf[] {
 
 };
 
+long lastActivity = 0;
+
 Config::Config(byte version, String batchNumber) :
 	_batchNumber(batchNumber)
 {
@@ -63,12 +65,16 @@ void Config::getVersion() {
 	Serial.println(_batchNumber);
 }
 
+long Config::getLastActivity() {
+	return lastActivity;
+}
+
 void Config::waitValues() {
 	String data;
 	String name;
 	int newValue;
 	if (Serial.available() > 0) {
-	
+		lastActivity = millis();
 		data = Serial.readString();
 		name = splitString(data, '=', 0);
 		newValue = splitString(data, '=', 1).toInt();

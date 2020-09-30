@@ -18,8 +18,6 @@ long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 
-long lastActivity = 0;
-
 const byte buttonPinGreen = 2;
 const byte buttonPinRed = 3;
 
@@ -140,10 +138,9 @@ void loop()
   else if (mode == 2) {
   }
   else if (mode == 3) {
-    if (Serial.available() > 0) {
-      lastActivity = millis();
-    }
-    if (millis() - lastActivity > (5 * 1000)) {
+    long lastActivity = config.getLastActivity();
+    //go to normal if inactivity > 30m
+    if (millis() - lastActivity > (30*60 * 1000)) {
       changeMode(0);
     }
     config.waitValues();

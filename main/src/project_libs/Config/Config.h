@@ -24,6 +24,7 @@ public:
     void showValues();
     
     void getVersion();
+    long getLastActivity();
 
 private:
 	
