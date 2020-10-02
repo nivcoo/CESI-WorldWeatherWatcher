@@ -3,37 +3,51 @@
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include <SoftwareSerial.h>
-SoftwareSerial SoftSerial(4, 5);
-
 //#include <SD.h>
-tmElements_t tm;
+
+/**
 BME280I2C bme;
-//0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
-int previousMode = 0;
-int mode = 0;
+SoftwareSerial SoftSerial(4, 5);
+**/
+SoftwareSerial SoftSerial(4, 5);
+BME280I2C bme;
+/**Sd2Card card;
+SdVolume volume;
+SdFile root;**/
+
+tmElements_t tm;
+DS1307RTC clock;
 Config config(2, "0930A");
 Led leds(8, 9, 1);
-DS1307RTC clock;
+
+
+//0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
+byte previousMode = 0;
+byte mode = 0;
 long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 
-const byte buttonPinGreen = 2;
-const byte buttonPinRed = 3;
+
+const byte buttonPinGreen PROGMEM = 2;
+const byte buttonPinRed PROGMEM = 3;
+
 int sensorLightValue(0);
+
 float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
 
 void setup()
 {
-
   Serial.begin(9600);
   config.showValues();
   pinMode(buttonPinRed, INPUT_PULLUP);
   pinMode(buttonPinGreen, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPinRed), clickButtonRedEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(buttonPinGreen), clickButtonGreenEvent, CHANGE);
-  //setDate("02 10 2020 10:25:20");
   showDate();
+
+
+  //setDate("02 10 2020 10:25:20");
 }
 
 bool setDate(const char *str)
@@ -104,7 +118,7 @@ void pressedButtonRed() {
 void changeMode(int _mode) {
   mode = _mode;
 
-  String name = "";
+  String name = F("");
   //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
   switch (_mode) {
     case 0:
@@ -151,10 +165,10 @@ bool checkError() {
   }
 
 
-  bool sensorLightError = (sensorLightValue < config.getValue("LUMIN_LOW") || sensorLightValue > config.getValue("LUMIN_HIGH")) && config.getValue("LUMINO");
-  bool sensorTempError = (sensorTempValue < config.getValue("MIN_TEMP_AIR") || sensorTempValue > config.getValue("MAX_TEMP_AIR")) && config.getValue("TEMP_AIR");
-  bool sensorPresError = (sensorPresValue < config.getValue("PRESSURE_MIN") || sensorPresValue > config.getValue("PRESSURE_MAX")) && config.getValue("PRESSURE");
-  bool sensorHumError = (sensorTempValue < config.getValue("HYGR_MINT") || sensorTempValue > config.getValue("HYGR_MAXT")) && config.getValue("HYGR");
+  bool sensorLightError = (sensorLightValue < config.getValue(F("LUMIN_LOW")) || sensorLightValue > config.getValue(F("LUMIN_HIGH"))) && config.getValue(F("LUMINO"));
+  bool sensorTempError = (sensorTempValue < config.getValue(F("MIN_TEMP_AIR")) || sensorTempValue > config.getValue(F("MAX_TEMP_AIR"))) && config.getValue(F("TEMP_AIR"));
+  bool sensorPresError = (sensorPresValue < config.getValue(F("PRESSURE_MIN")) || sensorPresValue > config.getValue(F("PRESSURE_MAX"))) && config.getValue(F("PRESSURE"));
+  bool sensorHumError = (sensorTempValue < config.getValue(F("HYGR_MINT")) || sensorTempValue > config.getValue(F("HYGR_MAXT"))) && config.getValue(F("HYGR"));
 
 
   if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
@@ -169,22 +183,22 @@ bool checkError() {
   if (!code)
     lastError = millis();
 
-  if (millis() - lastError > config.getValue("TIMEOUT") * 1000) {
+  if (millis() - lastError > config.getValue(F("TIMEOUT")) * 1000) {
 
     error = true;
 
     switch (code) {
       case 1:
         //rtc error
-        leds.color("RED", 1, "BLUE", 1);
+        leds.color(F("RED"), 1, F("BLUE"), 1);
         break;
       case 2:
         //data error
-        leds.color("RED", 1, "GREEN", 3);
+        leds.color(F("RED"), 1, F("GREEN"), 3);
         break;
       case 3:
         //sensor error
-        leds.color("RED", 1, "GREEN", 1);
+        leds.color(F("RED"), 1, F("GREEN"), 1);
         break;
 
 
@@ -223,18 +237,18 @@ void loop()
     getSensorValues();
     if (!checkError()) {
       if (mode == 0) {
-        leds.color("GREEN");
+        leds.color(F("GREEN"));
       }
       else if (mode == 1) {
-        leds.color("BLUE");
+        leds.color(F("BLUE"));
       }
       else if (mode == 2) {
-        leds.color("ORANGE");
+        leds.color(F("ORANGE"));
       }
     }
   }
   else {
-    leds.color("YELLOW");
+    leds.color(F("YELLOW"));
     long lastActivity = config.getLastActivity();
     //go to normal if inactivity > 30m
     if ((millis() - lastActivity) / 100 > (30 * 60 * 10)) {
