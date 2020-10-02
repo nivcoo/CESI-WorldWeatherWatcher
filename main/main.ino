@@ -3,7 +3,7 @@
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include <SoftwareSerial.h>
-SoftwareSerial SoftSerial(2, 3);
+SoftwareSerial SoftSerial(4, 5);
 
 //#include <SD.h>
 tmElements_t tm;
@@ -32,7 +32,7 @@ void setup()
   pinMode(buttonPinGreen, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPinRed), clickButtonRedEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(buttonPinGreen), clickButtonGreenEvent, CHANGE);
-  //setDate("30 09 2020 13:27:40");
+  //setDate("02 10 2020 10:25:20");
   showDate();
 }
 
@@ -130,8 +130,8 @@ void checkPressedButton() {
     changeMode(3);
   }
   checkStartPressedButton = false;
-
   if ((millis() - buttonPressedMs) > (5 * 1000) && buttonPressed) {
+
     if (digitalRead(buttonPinGreen) == 0) {
       pressedButtonGreen();
     } else if (digitalRead(buttonPinRed) == 0) {
@@ -151,10 +151,11 @@ bool checkError() {
   }
 
 
-  bool sensorLightError = (sensorLightValue < config.getValue("LUMIN_LOW") || sensorLightValue > config.getValue("LUMIN_HIGH")) && config.getValue("LUMIN");
+  bool sensorLightError = (sensorLightValue < config.getValue("LUMIN_LOW") || sensorLightValue > config.getValue("LUMIN_HIGH")) && config.getValue("LUMINO");
   bool sensorTempError = (sensorTempValue < config.getValue("MIN_TEMP_AIR") || sensorTempValue > config.getValue("MAX_TEMP_AIR")) && config.getValue("TEMP_AIR");
   bool sensorPresError = (sensorPresValue < config.getValue("PRESSURE_MIN") || sensorPresValue > config.getValue("PRESSURE_MAX")) && config.getValue("PRESSURE");
   bool sensorHumError = (sensorTempValue < config.getValue("HYGR_MINT") || sensorTempValue > config.getValue("HYGR_MAXT")) && config.getValue("HYGR");
+
 
   if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
     code = 2;
