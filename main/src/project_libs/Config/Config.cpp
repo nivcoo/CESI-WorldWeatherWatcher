@@ -14,9 +14,9 @@ Configuration conf[] {
   {1, "PRESSURE", 0, 1, 1},
   {850, "PRESSURE_MIN", 300, 1100, 2},
   {1080, "PRESSURE_MAX", 300, 1080, 2},
-  {10, "LOG_INTERVALL", 1, 255, 1},
+  {10, "LOG_INTERVALL", 1, 255, 2},
   {4096, "FILE_MAX_SIZE", 1024, 8192, 2},
-  {30, "TIMEOUT", 1, 255, 1}
+  {30, "TIMEOUT", 1, 255, 2}
 
 };
 
@@ -28,8 +28,10 @@ Config::Config(byte version, String batchNumber) :
 	byte versionIndex = get("VERSION", 1);
 	conf[versionIndex].value = version;
 
-	if(version != readInt(get("VERSION", 0), conf[versionIndex].size)) 
+	if(version != getValue("VERSION")) 
 		resetValues();
+	
+	
 }
 
 void Config::resetValues()

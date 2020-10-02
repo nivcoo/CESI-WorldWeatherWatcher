@@ -2,6 +2,9 @@
 #include "src/project_libs/Led/Led.h"
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
+#include <SoftwareSerial.h>
+SoftwareSerial SoftSerial(2, 3);
+
 //#include <SD.h>
 tmElements_t tm;
 BME280I2C bme;
@@ -65,9 +68,9 @@ void showDate()
     Serial.println(F(" "));
   } else {
     if (RTC.chipPresent()) {
-      Serial.println(F("The RTC is stopped. Please run the SetTime"));
+      Serial.println(F("The RTC is stopped. Please run the setDate"));
     } else {
-      Serial.println(F("RTC read error! Please check the circuitry."));
+      Serial.println(F("RTC read error! Please check."));
     }
   }
 }
@@ -138,34 +141,57 @@ void checkPressedButton() {
   }
 }
 
+long lastError(0);
+
 bool checkError() {
   bool error = false;
+  int code = 0;
   if (!RTC.read(tm)) {
-    //rtc error
-    leds.color("RED", 1, "BLUE", 1);
-    error = true;
+    code = 1;
   }
 
 
-  bool sensorLightError = sensorLightValue < config.getValue("LUMIN_LOW") || sensorLightValue > config.getValue("LUMIN_HIGH");
-  bool sensorTempError = sensorTempValue < config.getValue("MIN_TEMP_AIR") || sensorTempValue > config.getValue("MAX_TEMP_AIR");
-  bool sensorPresError = sensorPresValue < config.getValue("PRESSURE_MIN") || sensorPresValue > config.getValue("PRESSURE_MAX");
-  bool sensorHumError = sensorHumValue < config.getValue("HYGR_MINT") || sensorHumValue > config.getValue("HYGR_MAXT");
+  bool sensorLightError = (sensorLightValue < config.getValue("LUMIN_LOW") || sensorLightValue > config.getValue("LUMIN_HIGH")) && config.getValue("LUMIN");
+  bool sensorTempError = (sensorTempValue < config.getValue("MIN_TEMP_AIR") || sensorTempValue > config.getValue("MAX_TEMP_AIR")) && config.getValue("TEMP_AIR");
+  bool sensorPresError = (sensorPresValue < config.getValue("PRESSURE_MIN") || sensorPresValue > config.getValue("PRESSURE_MAX")) && config.getValue("PRESSURE");
+  bool sensorHumError = (sensorTempValue < config.getValue("HYGR_MINT") || sensorTempValue > config.getValue("HYGR_MAXT")) && config.getValue("HYGR");
+
   if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
-    //data error
-    leds.color("RED", 1, "GREEN", 3);
-    error = true;
+    code = 2;
   }
 
   if (!bme.begin())
   {
-    //sensor error
-    leds.color("RED", 1, "GREEN", 1);
+    code = 3;
+  }
+
+  if (!code)
+    lastError = millis();
+
+  if (millis() - lastError > config.getValue("TIMEOUT") * 1000) {
+
     error = true;
+
+    switch (code) {
+      case 1:
+        //rtc error
+        leds.color("RED", 1, "BLUE", 1);
+        break;
+      case 2:
+        //data error
+        leds.color("RED", 1, "GREEN", 3);
+        break;
+      case 3:
+        //sensor error
+        leds.color("RED", 1, "GREEN", 1);
+        break;
+
+
+    }
   }
 
 
-   
+
 
 
   //gps error

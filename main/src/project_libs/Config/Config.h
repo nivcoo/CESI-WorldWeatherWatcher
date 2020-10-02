@@ -5,13 +5,13 @@
 
 #include "../../imported_libs/EEPROM/EEPROM.h"
 //#include "/usr/share/arduino/libraries/EEPROM/EEPROM.h"
-typedef struct {
+struct Configuration {
 	int value;
 	String name;
 	int min;
 	int max;
-	int size;
-} Configuration;
+	byte size;
+};
 class Config
 {
 
