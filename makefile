@@ -7,10 +7,10 @@ CPP_FLAGS = $(GENERAL_FLAGS) -fno-exceptions
 CC_FLAGS  = $(GENERAL_FLAGS)
 
 # various programs
-CC = "$(ARDUINO_DIR)hardware/tools/avr/bin/avr-gcc"
-CPP = "$(ARDUINO_DIR)hardware/tools/avr/bin/avr-g++"
-AR = "$(ARDUINO_DIR)hardware/tools/avr/bin/avr-ar"
-OBJ_COPY = "$(ARDUINO_DIR)hardware/tools/avr/bin/avr-objcopy"
+CC = "/usr/bin/avr-gcc"
+CPP = "/usr/bin/avr-g++"
+AR = "/usr/bin/avr-ar"
+OBJ_COPY = "/usr/bin/avr-objcopy"
 
 # location of include files
 INCLUDE_FILES = "-I$(ARDUINO_DIR)hardware/arduino/cores/arduino" "-I$(ARDUINO_DIR)hardware/arduino/variants/standard"
@@ -22,14 +22,13 @@ LIBRARY_DIR = "$(ARDUINO_DIR)hardware/arduino/cores/arduino/"
 TARGET=build/main
 ARDUINO_DIR = /usr/share/arduino/
 SRCS_DIR=main
-MAIN_SKETCH = main.c
+MAIN_SKETCH = main.cpp
 
 
 all : build
 
 build:
 	cp $(SRCS_DIR)/main.ino $(SRCS_DIR)/$(MAIN_SKETCH)
-	$(CPP) $(CPP_FLAGS) $(INCLUDE_FILES) $(SRCS_DIR)/$(MAIN_SKETCH) -o $(MAIN_SKETCH).o
 	$(CC) $(CC_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)avr-libc/malloc.c -o malloc.c.o
 	$(CC) $(CC_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)avr-libc/realloc.c -o realloc.c.o
 	$(CC) $(CC_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)WInterrupts.c -o WInterrupts.c.o
@@ -50,6 +49,7 @@ build:
 	$(CPP) $(CPP_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)USBCore.cpp -o USBCore.cpp.o
 	$(CPP) $(CPP_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)WMath.cpp -o WMath.cpp.o
 	$(CPP) $(CPP_FLAGS) $(INCLUDE_FILES) $(LIBRARY_DIR)WString.cpp -o WString.cpp.o
+	$(CPP) $(CPP_FLAGS) $(INCLUDE_FILES) $(SRCS_DIR)/$(MAIN_SKETCH) -o $(MAIN_SKETCH).o
 	rm -f core.a
 	$(AR) rcs core.a malloc.c.o
 	$(AR) rcs core.a realloc.c.o
@@ -77,3 +77,4 @@ build:
 
 clean:
 	rm -f *.d *.o *.elf *.bin 
+	rm -f main/main.cpp
