@@ -257,6 +257,7 @@ void getSensorValues() {
 
   if (updateGPS)
   {
+    gpsError = false;
     unsigned long age;
     GPS.f_get_position(&gpsLat, &gpsLon, &age);
     Serial.print("LAT=");
@@ -266,8 +267,8 @@ void getSensorValues() {
     Serial.print(" SAT=");
     Serial.print(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
     Serial.print(" ALT=");
-    gpsAlt = GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude();
-    Serial.println(gpsAlt);
+    gpsAlt = GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude()/100;
+    Serial.println(gpsAlt/100);
   } else {
     gpsError = true;
   }
