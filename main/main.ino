@@ -244,7 +244,18 @@ void getSensorValues() {
   BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
   BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
-  if (GPS.encode(gps.read()))
+  bool updateGPS = false;
+  for (unsigned long start = millis(); millis() - start < 1000;)
+  {
+    while (gps.available())
+    {
+      char c = gps.read();
+      if (GPS.encode(c)) 
+        updateGPS = true;
+    }
+  }
+
+  if (updateGPS)
   {
     unsigned long age;
     GPS.f_get_position(&gpsLat, &gpsLon, &age);
