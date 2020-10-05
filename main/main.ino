@@ -40,7 +40,7 @@ const byte buttonPinRed PROGMEM = 3;
 
 int sensorLightValue(0);
 
-float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0), gpsLon(0), gpsLat(0);
+float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0), gpsLon(0), gpsLat(0), gpsAlt(0);
 
 void setup()
 {
@@ -265,10 +265,9 @@ void getSensorValues() {
     Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
     Serial.print(" SAT=");
     Serial.print(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
-    Serial.print(" PREC=");
-    Serial.print(GPS.hdop() == TinyGPS::GPS_INVALID_HDOP ? 0 : GPS.hdop());
-    Serial.print(" AGE=");
-    Serial.print(age);
+    Serial.print(" ALT=");
+    gpsAlt = GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude();
+    Serial.println(gpsAlt);
   } else {
     gpsError = true;
   }
