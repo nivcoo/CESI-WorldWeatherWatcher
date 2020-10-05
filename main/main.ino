@@ -2,18 +2,23 @@
 #include "src/project_libs/Led/Led.h"
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
+#include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
 //#include <SD.h>
 
+
+
 /**
-BME280I2C bme;
-SoftwareSerial SoftSerial(4, 5);
+  BME280I2C bme;
+  SoftwareSerial SoftSerial(4, 5);
 **/
-SoftwareSerial SoftSerial(4, 5);
+
+SoftwareSerial gps(4, 5);
+TinyGPS GPS;
 BME280I2C bme;
 /**Sd2Card card;
-SdVolume volume;
-SdFile root;**/
+  SdVolume volume;
+  SdFile root;**/
 
 tmElements_t tm;
 DS1307RTC clock;
@@ -27,6 +32,7 @@ byte mode = 0;
 long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
+bool gpsError = false;
 
 
 const byte buttonPinGreen PROGMEM = 2;
@@ -34,20 +40,19 @@ const byte buttonPinRed PROGMEM = 3;
 
 int sensorLightValue(0);
 
-float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
+float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0), gpsLon(0), gpsLat(0);
 
 void setup()
 {
   Serial.begin(9600);
+  gps.begin(9600);
   config.showValues();
   pinMode(buttonPinRed, INPUT_PULLUP);
   pinMode(buttonPinGreen, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(buttonPinRed), clickButtonRedEvent, CHANGE);
   attachInterrupt(digitalPinToInterrupt(buttonPinGreen), clickButtonGreenEvent, CHANGE);
+  //setDate("05 10 2020 12:28:35");
   showDate();
-
-
-  //setDate("02 10 2020 10:25:20");
 }
 
 bool setDate(const char *str)
@@ -180,6 +185,12 @@ bool checkError() {
     code = 3;
   }
 
+
+  if (gpsError)
+  {
+    code = 4;
+  }
+
   if (!code)
     lastError = millis();
 
@@ -200,6 +211,11 @@ bool checkError() {
         //sensor error
         leds.color(F("RED"), 1, F("GREEN"), 1);
         break;
+      case 4:
+        //gps error
+        leds.color("RED", 1, "YELLOW", 1);
+        break;
+
 
 
     }
@@ -228,6 +244,34 @@ void getSensorValues() {
   BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
   BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
+  if (GPS.encode(gps.read()))
+  {
+    unsigned long age;
+    GPS.f_get_position(&gpsLat, &gpsLon, &age);
+    Serial.print("LAT=");
+    Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+    Serial.print(" LON=");
+    Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+    Serial.print(" SAT=");
+    Serial.print(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+    Serial.print(" PREC=");
+    Serial.print(GPS.hdop() == TinyGPS::GPS_INVALID_HDOP ? 0 : GPS.hdop());
+    Serial.print(" AGE=");
+    Serial.print(age);
+  } else {
+    gpsError = true;
+  }
+
+  /**GPS.stats(&chars, &sentences, &failed);
+    Serial.print(" CHARS=");
+    Serial.print(chars);
+    Serial.print(" SENTENCES=");
+    Serial.print(sentences);
+    Serial.print(" CSUM ERR=");
+    Serial.println(failed);
+    if (chars == 0)
+    Serial.println("** No characters received from GPS: check wiring **");
+    **/
 }
 
 void loop()

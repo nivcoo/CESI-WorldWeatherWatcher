@@ -52,19 +52,13 @@ long temp = 0;
 void Led::color(String firstColor, byte firstTime, String secondColor, byte secondTime)
 {
 	long actual = millis();
-	
-	if(color_change) {
-		if((actual/1000 % (firstTime))== 0 && (temp - actual)/1000 != 0) {
-			temp = actual;
-			color_change = !color_change;
-		}
-	} else {
-		
-		if((actual/1000 % (secondTime))== 0 && (temp - actual)/1000 != 0) {
-			temp = actual;
-			color_change = !color_change;
-		}
-	}
+	int time = (color_change) ? firstTime : secondTime;
+
+    if((actual/1000 % (time))== 0 && (temp - actual)/1000 != 0) {
+        temp = actual;
+        color_change = !color_change;
+    }
+
 	if(color_change)
 		setColor(firstColor);
 	else
