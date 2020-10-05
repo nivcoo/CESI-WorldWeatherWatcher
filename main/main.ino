@@ -245,7 +245,7 @@ void getSensorValues() {
   BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   bool updateGPS = false;
-  for (unsigned long start = millis(); millis() - start < 1000;)
+  for (unsigned long start = millis(); millis() - start < 5000;)
   {
     while (gps.available())
     {
@@ -268,7 +268,7 @@ void getSensorValues() {
     Serial.print(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
     Serial.print(" ALT=");
     gpsAlt = GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude()/100;
-    Serial.println(gpsAlt/100);
+    Serial.println(gpsAlt);
   } else {
     gpsError = true;
   }
