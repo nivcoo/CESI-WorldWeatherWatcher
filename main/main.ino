@@ -29,7 +29,7 @@ Led leds(8, 9, 1);
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
 byte previousMode = 0;
 byte mode = 0;
-long buttonPressedMs = millis();
+unsigned long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 bool gpsError = false;
@@ -160,7 +160,7 @@ void checkPressedButton() {
   }
 }
 
-long lastError(0);
+unsigned long lastError(0);
 
 bool checkError() {
   bool error = false;
@@ -245,7 +245,7 @@ void getSensorValues() {
   BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   bool updateGPS = false;
-  for (unsigned long start = millis(); millis() - start < 5000;)
+  for (unsigned long start = millis(); millis() - start < 1000;)
   {
     while (gps.available())
     {
@@ -304,7 +304,7 @@ void loop()
   }
   else {
     leds.color(F("YELLOW"));
-    long lastActivity = config.getLastActivity();
+    unsigned long lastActivity = config.getLastActivity();
     //go to normal if inactivity > 30m
     if ((millis() - lastActivity) / 100 > (30 * 60 * 10)) {
       changeMode(0);
