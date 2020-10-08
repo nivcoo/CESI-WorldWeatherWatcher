@@ -4,9 +4,10 @@
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
-//#include <SD.h>
 
-
+/**#include <SPI.h> //remove comment to use SD card
+  #include <SD.h> //remove comment to use SD card
+  #define CHIP 4  //remove comment to use SD card**/
 #define LIGHT_PIN 0
 #define BUTTON_GREEN 2
 #define BUTTON_RED 3
@@ -36,6 +37,8 @@ unsigned long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 float gpsLon(0), gpsLat(0), gpsAlt(0);
+//bool SDWriteError = false; //remove comment to use SD card
+
 
 typedef struct {
   char name;
@@ -52,6 +55,14 @@ Sensor sensors[] {
 void setup()
 {
   Serial.begin(9600);
+  /**if (!SD.begin(CHIP)) { //remove comment to use SD card
+    Serial.println(F("SD Card loading Failed")); //remove comment to use SD card
+    while (true); //remove comment to use SD card
+    } //remove comment to use SD card**/
+
+
+
+
   gps.begin(9600);
   config.showValues();
   pinMode(BUTTON_RED, INPUT_PULLUP);
@@ -117,11 +128,16 @@ void pressedButtonGreen() {
 }
 
 void pressedButtonRed() {
-  if (mode == 2 || mode == 3)
+  if (mode == 2 || mode == 3) {
     changeMode(previousMode);
+    /**while (!SD.begin(CHIP)) { //remove comment to use SD card
+      Serial.println(F("SD Card loading Failed")); //remove comment to use SD card
+      } //remove comment to use SD card**/
+  }
   else {
     previousMode = mode;
     changeMode(MODE_MAINTENANCE);
+    //SD.end(); //remove comment to use SD card
   }
 }
 
@@ -228,7 +244,14 @@ bool getSensorValues() {
   else if (!updateGPS)
   {
     code = 4;
-  } else {
+  } /**else if (SDWriteError) { //remove comment to use SD card
+    code = 5; //remove comment to use SD card
+  } //remove comment to use SD card**/
+  /**else if (SDWriteError) { //remove comment to use SD card
+      code = 5; //remove comment to use SD card
+    } //remove comment to use SD card**/
+
+  else {
     lastSuccess = millis();
   }
 
@@ -276,16 +299,109 @@ bool getSensorValues() {
         //gps error
         leds.color("RED", 1, "YELLOW", 1);
         break;
+      case 5:
+        //SD write error
+        leds.color("RED", 1, "WHITE", 3);
+        break;
+      case 6:
+        //SD write error
+        leds.color("RED", 1, "WHITE", 1);
+        break;
     }
   }
   return error;
 }
+
+/**String getLogFileName(String year, String month, String day, int number, int stringSize) { //remove comment to use SD card
+  String extension = ".txt";
+  String fileName = year +  month + day + "_" + number + extension;
+  File file = SD.open(fileName);
+  int fileSize = file.size() + stringSize;
+  file.close();
+  int i = 0;
+  while (fileSize > 4096) {
+    fileName = year +  month + day + "_" + (number + i) + extension;
+    file = SD.open(fileName);
+    fileSize = file.size() + stringSize;
+    file.close();
+    i++;
+  }
+  return fileName;
+}//remove comment to use SD card **/ 
 unsigned long lastWrite(0);
+
 void writeValues(bool sd) {
-  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")))) {
+  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) / 60) ) {
     lastWrite = millis();
     if (sd) {
       //write in SD card
+
+      /**if (RTC.read(tm)) { //remove comment to use SD card
+        String year = String(tmYearToCalendar(tm.Year) - 2000);
+        String month = String(tm.Month);
+        String day = String(tm.Day);
+        String fileName = getLogFileName(year, month, day, 0, text.length());
+        File logFile = SD.open(fileName, FILE_WRITE);
+        if (logFile) {
+          SDWriteError = false;
+          logFile.print(F("["));
+          logFile.print(tm.Day, DEC);
+          logFile.print(F("/"));
+          logFile.print(tm.Month, DEC);
+          logFile.print(F("/"));
+          logFile.print(tmYearToCalendar(tm.Year), DEC);
+          logFile.print(F(" "));
+          logFile.print(tm.Hour, DEC);
+          logFile.print(F(":"));
+          logFile.print(tm.Minute, DEC);
+          logFile.print(F(":"));
+          logFile.print(tm.Second, DEC);
+          logFile.print(F("]  "));
+          for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+            switch (sensors[i].name) {
+              case 'L':
+                //rtc error
+                logFile.print(F("Light : "));
+                break;
+              case 'T':
+                //data error
+                logFile.print(F("Temperature (°C) : "));
+                break;
+              case 'H':
+                //sensor error
+                logFile.print(F("Hygrometry (%) : "));
+                break;
+              case 'P':
+                //gps error
+                logFile.print(F("Pressure (HPa) : "));
+                break;
+            }
+            logFile.print(sensors[i].avr);
+            logFileial.print(F("   "));
+          }
+          logFile.print(F("|"));
+          logFile.print(F("   "));
+          logFile.print(F("Latitude : "));
+          logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+          logFile.print(F("   "));
+          logFile.print(F("Longitude : "));
+          logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+          logFile.print(F("   "));
+          logFile.print(F("Altitude (m) : "));
+          logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+          logFile.print(F("   "));
+          logFile.print(F("Satelites : "));
+          logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+          logFile.close();
+        } else {
+          SDWriteError = true;
+        }
+      }//remove comment to use SD card **/ 
+
+
+
+
+      
     }
     Serial.print(F("["));
     showDate();
