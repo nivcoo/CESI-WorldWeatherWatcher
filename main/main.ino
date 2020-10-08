@@ -314,22 +314,40 @@ bool getSensorValues() {
   return success;
 }
 
-/**String getLogFileName(String year, String month, String day, int number) { //remove comment to use SD card
+/**void checkSizeFiles(String startFile, int startNumber) { //remove comment to use SD card
+
   String extension = ".txt";
-  String fileName = year +  month + day + "_" + number + extension;
+  String fileName = startFile + "_" + startNumber + extension;
+  File file = SD.open(fileName);
+  int fileSize = file.size();
+  if (fileSize > 4096) {
+    File newFile = SD.open(getLogFileName(startFile, 1));
+    newFile.write(file);
+    newFile.close();
+    file.close();
+    SD.remove(fileName);
+  } else
+    file.close();
+
+} //remove comment to use SD card**/
+
+/**
+ String getLogFileName(String startFile, int startNumber) { //remove comment to use SD card
+  String extension = ".txt";
+  String fileName = startFile + "_" + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
   file.close();
   int i = 0;
-  while (fileSize > 4096) {
-    fileName = year +  month + day + "_" + (number + i) + extension;
+  while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
+    fileName = startFile + "_" + (startNumber + i) + extension;
     file = SD.open(fileName);
     fileSize = file.size();
     file.close();
     i++;
   }
   return fileName;
-  }//remove comment to use SD card **/
+} //remove comment to use SD card **/
 unsigned long lastWrite(0);
 
 void writeValues(bool sd) {
@@ -343,7 +361,9 @@ void writeValues(bool sd) {
           String year = String(tmYearToCalendar(tm.Year) - 2000);
           String month = String(tm.Month);
           String day = String(tm.Day);
-          String fileName = getLogFileName(year, month, day, 0);
+          String startFiles = year + month + day;
+          checkSizeFiles(startFiles, 0);
+          String fileName = startFiles + "_" + 0 + ".txt";
           File logFile = SD.open(fileName, FILE_WRITE);
           if (logFile) {
             SDWriteError = false;

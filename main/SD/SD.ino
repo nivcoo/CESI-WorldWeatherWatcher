@@ -20,15 +20,34 @@ void setup() {
 }
 unsigned long lastWrite(0);
 
-String getLogFileName(String year, String month, String day, int number) {
+void checkSizeFile(String startFile, int startNumber) {
+
   String extension = ".txt";
-  String fileName = year +  month + day + "_" + number + extension;
+  String fileName = startFile + "_" + startNumber + extension;
+  File file = SD.open(fileName);
+  int fileSize = file.size();
+
+  int i = 0;
+  if (fileSize > 4096) {
+
+    File newFile = SD.open(getLogFileName(startFile, 1));
+    newFile.write(file);
+    newFile.close();
+    file.close();
+    SD.remove(fileName);
+  } else
+    file.close();
+
+}
+String getLogFileName(String startFile, int startNumber) {
+  String extension = ".txt";
+  String fileName = startFile + "_" + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
   file.close();
   int i = 0;
   while (fileSize > 4096) {
-    fileName = year +  month + day + "_" + (number + i) + extension;
+    fileName = startFile + "_" + (startNumber + i) + extension;
     file = SD.open(fileName);
     fileSize = file.size();
     file.close();
@@ -49,7 +68,9 @@ void writeValues(bool sd) {
         String year = String(tmYearToCalendar(tm.Year) - 2000);
         String month = String(tm.Month);
         String day = String(tm.Day);
-        String fileName = getLogFileName(year, month, day, 0);
+        String startFile = year + month + day;
+        checkSizeFile(startFile, 0);
+        String fileName = startFile + "_" + 0 + ".txt";
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
           Serial.println(fileName);
