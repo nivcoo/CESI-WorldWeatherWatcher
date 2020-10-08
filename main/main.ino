@@ -1,11 +1,14 @@
-#define MAX_VALUE 3
+#define LIGHT_PIN 0
+#define BUTTON_GREEN 2
+#define BUTTON_RED 3
+#define GPS_PIN_1 4
+#define GPS_PIN_2 2
+
 #define MODE_NORMAL 0
 #define MODE_ECO 1
 #define MODE_MAINTENANCE 2
 #define MODE_CONFIG 3
-
-#define BUTTON_GREEN 2
-#define BUTTON_RED 3
+#define MAX_VALUE 3
 
 
 #include "src/project_libs/Config/Config.h"
@@ -16,7 +19,7 @@
 #include <SoftwareSerial.h>
 //#include <SD.h>
 
-SoftwareSerial gps(4, 5);
+SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
 TinyGPS GPS;
 BME280I2C bme;
 tmElements_t tm;
@@ -185,7 +188,7 @@ bool getSensorValues() {
   bool error = false;
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
-  int sensorLightValue = analogRead(0);
+  int sensorLightValue = analogRead(LIGHT_PIN);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   bool updateGPS = false;
   for (unsigned long start = millis(); millis() - start < 1000;)
