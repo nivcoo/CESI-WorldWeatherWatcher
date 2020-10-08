@@ -1,3 +1,12 @@
+#include "src/project_libs/Config/Config.h"
+#include "src/project_libs/Led/Led.h"
+#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
+#include "src/imported_libs/BME280/src/BME280I2C.h"
+#include "src/imported_libs/TinyGPS/TinyGPS.h"
+#include <SoftwareSerial.h>
+//#include <SD.h>
+
+
 #define LIGHT_PIN 0
 #define BUTTON_GREEN 2
 #define BUTTON_RED 3
@@ -9,15 +18,6 @@
 #define MODE_MAINTENANCE 2
 #define MODE_CONFIG 3
 #define MAX_VALUE 3
-
-
-#include "src/project_libs/Config/Config.h"
-#include "src/project_libs/Led/Led.h"
-#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
-#include "src/imported_libs/BME280/src/BME280I2C.h"
-#include "src/imported_libs/TinyGPS/TinyGPS.h"
-#include <SoftwareSerial.h>
-//#include <SD.h>
 
 SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
 TinyGPS GPS;
