@@ -202,28 +202,30 @@ unsigned long lastSuccess(0);
 BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
 BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
-
+bool gpsEco = false;
 bool getSensorValues() {
-  bool error = false;
+  bool success = true;
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
   int sensorLightValue = analogRead(LIGHT_PIN);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   bool updateGPS = false;
-  for (unsigned long start = millis(); millis() - start < 1000;)
-  {
-    while (gps.available())
+  gpsEco = !gpsEco || mode != MODE_ECO;
+  if (gpsEco) {
+    for (unsigned long start = millis(); millis() - start < 1000;)
     {
-      char c = gps.read();
-      if (GPS.encode(c))
-        updateGPS = true;
+      while (gps.available())
+      {
+        char c = gps.read();
+        if (GPS.encode(c))
+          updateGPS = true;
+      }
     }
-  }
-
-  if (updateGPS)
-  {
-    unsigned long age;
-    GPS.f_get_position(&gpsLat, &gpsLon, &age);
+    if (updateGPS)
+    {
+      unsigned long age;
+      GPS.f_get_position(&gpsLat, &gpsLon, &age);
+    }
   }
 
 
@@ -281,7 +283,7 @@ bool getSensorValues() {
   }
 
   if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT"))) {
-    error = true;
+    success = false;
     switch (code) {
       case 1:
         //rtc error
@@ -309,7 +311,7 @@ bool getSensorValues() {
         break;
     }
   }
-  return error;
+  return success;
 }
 
 /**String getLogFileName(String year, String month, String day, int number) { //remove comment to use SD card
@@ -327,120 +329,121 @@ bool getSensorValues() {
     i++;
   }
   return fileName;
-}//remove comment to use SD card **/ 
+  }//remove comment to use SD card **/
 unsigned long lastWrite(0);
 
 void writeValues(bool sd) {
-  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL"))) ) {
+  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
     lastWrite = millis();
-    if (sd) {
-      //write in SD card
+    if (RTC.read(tm)) {
+      if (sd) {
+        //write in SD card
 
-      /**if (RTC.read(tm)) { //remove comment to use SD card
-        String year = String(tmYearToCalendar(tm.Year) - 2000);
-        String month = String(tm.Month);
-        String day = String(tm.Day);
-        String fileName = getLogFileName(year, month, day, 0);
-        File logFile = SD.open(fileName, FILE_WRITE);
-        if (logFile) {
-          SDWriteError = false;
-          logFile.print(F("["));
-          logFile.print(tm.Day, DEC);
-          logFile.print(F("/"));
-          logFile.print(tm.Month, DEC);
-          logFile.print(F("/"));
-          logFile.print(tmYearToCalendar(tm.Year), DEC);
-          logFile.print(F(" "));
-          logFile.print(tm.Hour, DEC);
-          logFile.print(F(":"));
-          logFile.print(tm.Minute, DEC);
-          logFile.print(F(":"));
-          logFile.print(tm.Second, DEC);
-          logFile.print(F("]  "));
-          for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-            switch (sensors[i].name) {
-              case 'L':
-                //rtc error
-                logFile.print(F("Light : "));
-                break;
-              case 'T':
-                //data error
-                logFile.print(F("Temperature (°C) : "));
-                break;
-              case 'H':
-                //sensor error
-                logFile.print(F("Hygrometry (%) : "));
-                break;
-              case 'P':
-                //gps error
-                logFile.print(F("Pressure (HPa) : "));
-                break;
+        /** //remove comment to use SD card
+          String year = String(tmYearToCalendar(tm.Year) - 2000);
+          String month = String(tm.Month);
+          String day = String(tm.Day);
+          String fileName = getLogFileName(year, month, day, 0);
+          File logFile = SD.open(fileName, FILE_WRITE);
+          if (logFile) {
+            SDWriteError = false;
+            logFile.print(F("["));
+            logFile.print(tm.Day, DEC);
+            logFile.print(F("/"));
+            logFile.print(tm.Month, DEC);
+            logFile.print(F("/"));
+            logFile.print(tmYearToCalendar(tm.Year), DEC);
+            logFile.print(F(" "));
+            logFile.print(tm.Hour, DEC);
+            logFile.print(F(":"));
+            logFile.print(tm.Minute, DEC);
+            logFile.print(F(":"));
+            logFile.print(tm.Second, DEC);
+            logFile.print(F("]  "));
+            for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+              switch (sensors[i].name) {
+                case 'L':
+                  //rtc error
+                  logFile.print(F("Light : "));
+                  break;
+                case 'T':
+                  //data error
+                  logFile.print(F("Temperature (°C) : "));
+                  break;
+                case 'H':
+                  //sensor error
+                  logFile.print(F("Hygrometry (%) : "));
+                  break;
+                case 'P':
+                  //gps error
+                  logFile.print(F("Pressure (HPa) : "));
+                  break;
+              }
+              logFile.print(sensors[i].avr);
+              logFile.print(F("   "));
             }
-            logFile.print(sensors[i].avr);
+            logFile.print(F("|"));
             logFile.print(F("   "));
-          }
-          logFile.print(F("|"));
-          logFile.print(F("   "));
-          logFile.print(F("Latitude : "));
-          logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
-          logFile.print(F("   "));
-          logFile.print(F("Longitude : "));
-          logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
-          logFile.print(F("   "));
-          logFile.print(F("Altitude (m) : "));
-          logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
-          logFile.print(F("   "));
-          logFile.print(F("Satelites : "));
-          logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
-          logFile.close();
-        } else {
-          SDWriteError = true;
-        }
-      }//remove comment to use SD card **/ 
+            logFile.print(F("Latitude : "));
+            logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+            logFile.print(F("   "));
+            logFile.print(F("Longitude : "));
+            logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+            logFile.print(F("   "));
+            logFile.print(F("Altitude (m) : "));
+            logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+            logFile.print(F("   "));
+            logFile.print(F("Satelites : "));
+            logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+            logFile.close();
+          } else {
+            SDWriteError = true;
+          }//remove comment to use SD card **/
 
 
 
 
-      
-    }
-    Serial.print(F("["));
-    showDate();
-    Serial.print(F("]  "));
-    for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-      switch (sensors[i].name) {
-        case 'L':
-          //rtc error
-          Serial.print(F("Light : "));
-          break;
-        case 'T':
-          //data error
-          Serial.print(F("Temperature (°C) : "));
-          break;
-        case 'H':
-          //sensor error
-          Serial.print(F("Hygrometry (%) : "));
-          break;
-        case 'P':
-          //gps error
-          Serial.print(F("Pressure (HPa) : "));
-          break;
+
       }
-      Serial.print(sensors[i].avr);
+      Serial.print(F("["));
+      showDate();
+      Serial.print(F("]  "));
+      for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+        switch (sensors[i].name) {
+          case 'L':
+            //rtc error
+            Serial.print(F("Light : "));
+            break;
+          case 'T':
+            //data error
+            Serial.print(F("Temperature (°C) : "));
+            break;
+          case 'H':
+            //sensor error
+            Serial.print(F("Hygrometry (%) : "));
+            break;
+          case 'P':
+            //gps error
+            Serial.print(F("Pressure (HPa) : "));
+            break;
+        }
+        Serial.print(sensors[i].avr);
+        Serial.print(F("   "));
+      }
+      Serial.print(F("|"));
       Serial.print(F("   "));
+      Serial.print(F("Latitude : "));
+      Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+      Serial.print(F("   "));
+      Serial.print(F("Longitude : "));
+      Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+      Serial.print(F("   "));
+      Serial.print(F("Altitude (m) : "));
+      Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+      Serial.print(F("   "));
+      Serial.print(F("Satelites : "));
+      Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
     }
-    Serial.print(F("|"));
-    Serial.print(F("   "));
-    Serial.print(F("Latitude : "));
-    Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
-    Serial.print(F("   "));
-    Serial.print(F("Longitude : "));
-    Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
-    Serial.print(F("   "));
-    Serial.print(F("Altitude (m) : "));
-    Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
-    Serial.print(F("   "));
-    Serial.print(F("Satelites : "));
-    Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
 
 
 
@@ -451,7 +454,7 @@ void loop()
 {
   checkPressedButton();
   if (mode != 3) {
-    if (!getSensorValues()) {
+    if (getSensorValues()) {
       if (mode == 0) {
         leds.color(F("GREEN"));
         //true = write in SD card so if SD CARD works put true
