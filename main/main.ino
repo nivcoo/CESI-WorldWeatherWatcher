@@ -11,7 +11,10 @@
 #define BUTTON_GREEN 2
 #define BUTTON_RED 3
 #define GPS_PIN_1 4
-#define GPS_PIN_2 2
+#define GPS_PIN_2 5
+
+#define LED_PIN_1 5
+#define LED_PIN_2 5
 
 #define MODE_NORMAL 0
 #define MODE_ECO 1
@@ -25,7 +28,7 @@ BME280I2C bme;
 tmElements_t tm;
 DS1307RTC clock;
 Config config(1, "09A");
-Led leds(8, 9, 1);
+Led leds(LED_PIN_1, LED_PIN_2, 1);
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
 byte previousMode = 0;
 byte mode = 0;
@@ -283,48 +286,48 @@ void writeValues(bool sd) {
     lastWrite = millis();
     if (sd) {
       //write in SD card
-    } else {
-      Serial.print(F("["));
-      showDate();
-      Serial.print(F("]  "));
-      for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-        switch (sensors[i].name) {
-          case 'L':
-            //rtc error
-            Serial.print(F("Light : "));
-            break;
-          case 'T':
-            //data error
-            Serial.print(F("Temperature (°C) : "));
-            break;
-          case 'H':
-            //sensor error
-            Serial.print(F("Hygrometry (%) : "));
-            break;
-          case 'P':
-            //gps error
-            Serial.print(F("Pressure (HPa) : "));
-            break;
-        }
-        Serial.print(sensors[i].avr);
-        Serial.print(F("   "));
-      }
-      Serial.print(F("|"));
-      Serial.print(F("   "));
-      Serial.print(F("Latitude : "));
-      Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
-      Serial.print(F("   "));
-      Serial.print(F("Longitude : "));
-      Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
-      Serial.print(F("   "));
-      Serial.print(F("Altitude (m) : "));
-      Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
-      Serial.print(F("   "));
-      Serial.print(F("Satelites : "));
-      Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
-     
-      
     }
+    Serial.print(F("["));
+    showDate();
+    Serial.print(F("]  "));
+    for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+      switch (sensors[i].name) {
+        case 'L':
+          //rtc error
+          Serial.print(F("Light : "));
+          break;
+        case 'T':
+          //data error
+          Serial.print(F("Temperature (°C) : "));
+          break;
+        case 'H':
+          //sensor error
+          Serial.print(F("Hygrometry (%) : "));
+          break;
+        case 'P':
+          //gps error
+          Serial.print(F("Pressure (HPa) : "));
+          break;
+      }
+      Serial.print(sensors[i].avr);
+      Serial.print(F("   "));
+    }
+    Serial.print(F("|"));
+    Serial.print(F("   "));
+    Serial.print(F("Latitude : "));
+    Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+    Serial.print(F("   "));
+    Serial.print(F("Longitude : "));
+    Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+    Serial.print(F("   "));
+    Serial.print(F("Altitude (m) : "));
+    Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+    Serial.print(F("   "));
+    Serial.print(F("Satelites : "));
+    Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+
+
+
   }
 }
 
