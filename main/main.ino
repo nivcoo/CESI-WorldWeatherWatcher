@@ -303,7 +303,7 @@ bool getSensorValues() {
 /**void checkSizeFiles(String startFile, int startNumber) {
 
   String extension = ".txt";
-  String fileName = startFile + "_" + startNumber + extension;
+  String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
   if (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
@@ -325,13 +325,13 @@ bool getSensorValues() {
 /**
   String getLogFileName(String startFile, int startNumber) {
   String extension = ".txt";
-  String fileName = startFile + "_" + startNumber + extension;
+  String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName, FILE_WRITE);
   int fileSize = file.size();
   file.close();
   int i = 0;
   while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
-    fileName = startFile + "_" + (startNumber + i) + extension;
+    fileName = startFile + (startNumber + i) + extension;
     file = SD.open(fileName, FILE_WRITE);
     fileSize = file.size();
     file.close();
@@ -354,9 +354,9 @@ void writeValues(bool sd) {
           String year = String(now.year() - 2000);
           String month = String(now.month());
           String day = String(now.day());
-          String startFiles = year + month + day;
+          String startFiles = year + month + day + "_";
           checkSizeFiles(startFiles, 0);
-          String fileName = startFiles + "_" + 0 + ".txt";
+          String fileName = startFiles + 0 + ".txt";
           File logFile = SD.open(fileName, FILE_WRITE);
           if (logFile) {
           SDWriteError = false;
