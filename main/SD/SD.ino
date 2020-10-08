@@ -34,7 +34,7 @@ void checkSizeFiles(String startFile, int startNumber) {
   String fileName = startFile + "_" + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
-  if (fileSize > 200) {
+  if (fileSize > 4096) {
     String newFileName = getLogFileName(startFile, 1);
     File newFile = SD.open(newFileName, FILE_WRITE);
     size_t n;
@@ -56,7 +56,7 @@ String getLogFileName(String startFile, int startNumber) {
   int fileSize = file.size();
   file.close();
   int i = 0;
-  while (fileSize > 200) {
+  while (fileSize > 4096) {
     fileName = startFile + "_" + (startNumber + i) + extension;
     file = SD.open(fileName, FILE_WRITE);
     fileSize = file.size();

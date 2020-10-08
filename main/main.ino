@@ -14,8 +14,8 @@
 #define GPS_PIN_1 4
 #define GPS_PIN_2 5
 
-#define LED_PIN_1 5
-#define LED_PIN_2 5
+#define LED_PIN_1 8
+#define LED_PIN_2 9
 
 #define MODE_NORMAL 0
 #define MODE_ECO 1
