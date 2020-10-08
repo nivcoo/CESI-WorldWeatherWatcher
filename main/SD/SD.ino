@@ -12,8 +12,6 @@ tmElements_t tm;
 
 
 
-File  logFile; //remove comment to use SD card
-String logFileName;
 
 
 void setup() {
@@ -55,17 +53,58 @@ void writeValues(bool sd) {
         String year = String(tmYearToCalendar(tm.Year) - 2000);
         String month = String(tm.Month);
         String day = String(tm.Day);
-        String text = F("[" + day + "/" + month + "/" + tmYearToCalendar(tm.Year) + " " + tm.Hour + ":" + tm.Minute +  ":" + tm.Second + "  Temperature (°C) : " + 1 + "  Hygrometry (%) : " + 1 + "  Pressure (HPa) : " + 1 + "  Latitude : " + 1 + "  Longitude : " + 1 + "  Altitude (m) : " + 1 + "  Saltelites : " + 1);
-
         String fileName = getLogFileName(year, month, day, 0, text.length());
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
           SDWriteError = false;
-          Serial.print("Writing to ");
-          Serial.print(fileName);
-          Serial.print(logFile.size());
-          Serial.println("   ");
-          logFile.println(text);
+          logFile.print(F("["));
+          logFile.print(tm.Day, DEC);
+          logFile.print(F("/"));
+          logFile.print(tm.Month, DEC);
+          logFile.print(F("/"));
+          logFile.print(tmYearToCalendar(tm.Year), DEC);
+          logFile.print(F(" "));
+          logFile.print(tm.Hour, DEC);
+          logFile.print(F(":"));
+          logFile.print(tm.Minute, DEC);
+          logFile.print(F(":"));
+          logFile.print(tm.Second, DEC);
+          logFile.print(F("]  "));
+          for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+            switch (sensors[i].name) {
+              case 'L':
+                //rtc error
+                logFile.print(F("Light : "));
+                break;
+              case 'T':
+                //data error
+                logFile.print(F("Temperature (°C) : "));
+                break;
+              case 'H':
+                //sensor error
+                logFile.print(F("Hygrometry (%) : "));
+                break;
+              case 'P':
+                //gps error
+                logFile.print(F("Pressure (HPa) : "));
+                break;
+            }
+            logFile.print(sensors[i].avr);
+            logFileial.print(F("   "));
+          }
+          logFile.print(F("|"));
+          logFile.print(F("   "));
+          logFile.print(F("Latitude : "));
+          logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+          logFile.print(F("   "));
+          logFile.print(F("Longitude : "));
+          logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+          logFile.print(F("   "));
+          logFile.print(F("Altitude (m) : "));
+          logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+          logFile.print(F("   "));
+          logFile.print(F("Satelites : "));
+          logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
           logFile.close();
         } else {
           SDWriteError = true;
