@@ -300,9 +300,19 @@ bool getSensorValues() {
   return success;
 }
 
+/**void dateTime(uint16_t* date, uint16_t* time) { //remove comment to use SD card
+  DateTime now = rtc.now();
+
+  // return date using FAT_DATE macro to format fields
+   date = FAT_DATE(now.year(), now.month(), now.day());
+
+  // return time using FAT_TIME macro to format fields
+   time = FAT_TIME(now.hour(), now.minute(), now.second());
+  }//remove comment to use SD card **/
+
 /**void checkSizeFiles(String startFile, int startNumber) {
 
-  String extension = ".txt";
+  String extension = ".log";
   String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
@@ -324,7 +334,7 @@ bool getSensorValues() {
 
 /**
   String getLogFileName(String startFile, int startNumber) {
-  String extension = ".txt";
+  String extension = ".log";
   String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName, FILE_WRITE);
   int fileSize = file.size();
@@ -356,7 +366,7 @@ void writeValues(bool sd) {
           String day = String(now.day());
           String startFiles = year + month + day + "_";
           checkSizeFiles(startFiles, 0);
-          String fileName = startFiles + 0 + ".txt";
+          String fileName = startFiles + 0 + ".log";
           File logFile = SD.open(fileName, FILE_WRITE);
           if (logFile) {
           SDWriteError = false;

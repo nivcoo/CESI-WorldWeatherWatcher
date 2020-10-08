@@ -83,8 +83,10 @@ void writeValues(bool sd) {
         String day = String(now.day());
         String startFiles = year + month + day + "_";
         checkSizeFiles(startFiles, 0);
-        String fileName = startFiles + 0 + ".txt";
+        String fileName = startFiles + 0 + ".log";
         File logFile = SD.open(fileName, FILE_WRITE);
+        Serial.println(fileName);
+        Serial.println(logFile.size());
         if (logFile) {
           SDWriteError = false;
           logFile.print(F("["));
