@@ -1,6 +1,6 @@
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
-#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
+#include "src/imported_libs/RTClib/RTClib.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
@@ -26,8 +26,10 @@
 SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
 TinyGPS GPS;
 BME280I2C bme;
-tmElements_t tm;
-DS1307RTC clock;
+
+
+
+RTC_DS1307 rtc;
 Config config(1, "09A");
 Led leds(LED_PIN_1, LED_PIN_2, 1);
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
@@ -55,54 +57,38 @@ Sensor sensors[] {
 void setup()
 {
   Serial.begin(9600);
+  rtc.begin();
   /**if (!SD.begin(CHIP)) { //remove comment to use SD card
     Serial.println(F("SD Card loading Failed")); //remove comment to use SD card
     while (true); //remove comment to use SD card
     } //remove comment to use SD card**/
-
-
-
-
   gps.begin(9600);
   config.showValues();
   pinMode(BUTTON_RED, INPUT_PULLUP);
   pinMode(BUTTON_GREEN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, RISING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, RISING);
-  //setDate("05 10 2020 12:28:35");
   //showDate();
 }
 
-bool setDate(const char *str)
-{
-  int Day, Month, Year, Hour, Min, Sec;
-
-  if (sscanf(str, "%d %d %d %d:%d:%d", &Day, &Month, &Year, &Hour, &Min, &Sec) != 6) return false;
-  tm.Day = Day;
-  tm.Month = Month;
-  tm.Year = CalendarYrToTm(Year);
-  tm.Hour = Hour;
-  tm.Minute = Min;
-  tm.Second = Sec;
-  RTC.write(tm);
-}
 
 void showDate()
 {
-  if (RTC.read(tm)) {
-    Serial.print(tm.Day, DEC);
+  if (rtc.begin()) {
+    DateTime now = rtc.now();
+    Serial.print(now.day(), DEC);
     Serial.print(F("/"));
-    Serial.print(tm.Month, DEC);
+    Serial.print(now.month(), DEC);
     Serial.print(F("/"));
-    Serial.print(tmYearToCalendar(tm.Year), DEC);
+    Serial.print(now.year(), DEC);
     Serial.print(F(" "));
-    Serial.print(tm.Hour, DEC);
+    Serial.print(now.hour(), DEC);
     Serial.print(F(":"));
-    Serial.print(tm.Minute, DEC);
+    Serial.print(now.minute(), DEC);
     Serial.print(F(":"));
-    Serial.print(tm.Second, DEC);
+    Serial.print(now.second(), DEC);
   } else {
-    if (RTC.chipPresent()) {
+    if (rtc.isrunning()) {
       Serial.println(F("The RTC is stopped. Please run the setDate"));
     } else {
       Serial.println(F("RTC read error! Please check."));
@@ -233,7 +219,7 @@ bool getSensorValues() {
   bool sensorTempError = (sensorTempValue < config.getValue(F("MIN_TEMP_AIR")) || sensorTempValue > config.getValue(F("MAX_TEMP_AIR"))) && config.getValue(F("TEMP_AIR"));
   bool sensorPresError = (sensorPresValue < config.getValue(F("PRESSURE_MIN")) || sensorPresValue > config.getValue(F("PRESSURE_MAX"))) && config.getValue(F("PRESSURE"));
   bool sensorHumError = (sensorTempValue < config.getValue(F("HYGR_MINT")) || sensorTempValue > config.getValue(F("HYGR_MAXT"))) && config.getValue(F("HYGR"));
-  if (!RTC.read(tm)) {
+  if (!rtc.begin()) {
     code = 1;
   }
   else if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
@@ -314,72 +300,79 @@ bool getSensorValues() {
   return success;
 }
 
-/**void checkSizeFiles(String startFile, int startNumber) { //remove comment to use SD card
+/**void checkSizeFiles(String startFile, int startNumber) {
 
   String extension = ".txt";
   String fileName = startFile + "_" + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
-  if (fileSize > 4096) {
-    File newFile = SD.open(getLogFileName(startFile, 1));
-    newFile.write(file);
+  if (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
+    String newFileName = getLogFileName(startFile, 1);
+    File newFile = SD.open(newFileName, FILE_WRITE);
+    size_t n;
+    uint8_t buf[64];
+    while ((n = file.read(buf, sizeof(buf))) > 0) {
+      newFile.write(buf, n);
+    }
     newFile.close();
     file.close();
     SD.remove(fileName);
   } else
     file.close();
 
-} //remove comment to use SD card**/
+  } //remove comment to use SD card**/
 
 /**
- String getLogFileName(String startFile, int startNumber) { //remove comment to use SD card
+  String getLogFileName(String startFile, int startNumber) {
   String extension = ".txt";
   String fileName = startFile + "_" + startNumber + extension;
-  File file = SD.open(fileName);
+  File file = SD.open(fileName, FILE_WRITE);
   int fileSize = file.size();
   file.close();
   int i = 0;
   while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
     fileName = startFile + "_" + (startNumber + i) + extension;
-    file = SD.open(fileName);
+    file = SD.open(fileName, FILE_WRITE);
     fileSize = file.size();
     file.close();
     i++;
   }
   return fileName;
-} //remove comment to use SD card **/
+  } //remove comment to use SD card **/
 unsigned long lastWrite(0);
 
 void writeValues(bool sd) {
   if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
     lastWrite = millis();
-    if (RTC.read(tm)) {
+    if (rtc.begin()) {
       if (sd) {
         //write in SD card
 
         /** //remove comment to use SD card
-          String year = String(tmYearToCalendar(tm.Year) - 2000);
-          String month = String(tm.Month);
-          String day = String(tm.Day);
+          DateTime now = rtc.now();
+          SdFile::dateTimeCallback(dateTime);
+          String year = String(now.year() - 2000);
+          String month = String(now.month());
+          String day = String(now.day());
           String startFiles = year + month + day;
           checkSizeFiles(startFiles, 0);
           String fileName = startFiles + "_" + 0 + ".txt";
           File logFile = SD.open(fileName, FILE_WRITE);
           if (logFile) {
-            SDWriteError = false;
-            logFile.print(F("["));
-            logFile.print(tm.Day, DEC);
-            logFile.print(F("/"));
-            logFile.print(tm.Month, DEC);
-            logFile.print(F("/"));
-            logFile.print(tmYearToCalendar(tm.Year), DEC);
-            logFile.print(F(" "));
-            logFile.print(tm.Hour, DEC);
-            logFile.print(F(":"));
-            logFile.print(tm.Minute, DEC);
-            logFile.print(F(":"));
-            logFile.print(tm.Second, DEC);
-            logFile.print(F("]  "));
+          SDWriteError = false;
+          logFile.print(F("["));
+          logFile.print(now.day(), DEC);
+          logFile.print(F("/"));
+          logFile.print(now.month(), DEC);
+          logFile.print(F("/"));
+          logFile.print(now.year());
+          logFile.print(F(" "));
+          logFile.print(now.hour(), DEC);
+          logFile.print(F(":"));
+          logFile.print(now.minute(), DEC);
+          logFile.print(F(":"));
+          logFile.print(now.second(), DEC);
+          logFile.print(F("]  "));
             for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
               switch (sensors[i].name) {
                 case 'L':

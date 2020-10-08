@@ -1,10 +1,9 @@
 #define CHIP 4  //remove comment to use SD card
 #include <SD.h> //remove comment to use SD card
-#include "src/imported_libs/DS1307RTC/DS1307RTC.h"
+#include "src/imported_libs/RTClib/RTClib.h"
 
 
-DS1307RTC clock;
-tmElements_t tm;
+RTC_DS1307 rtc;
 
 
 
@@ -13,25 +12,36 @@ tmElements_t tm;
 void setup() {
 
   Serial.begin(9600);
+  rtc.begin();
   if (!SD.begin(CHIP)) { //remove comment to use SD card
     Serial.println(F("SD Card loading Failed")); //remove comment to use SD card
     while (true); //remove comment to use SD card
   } //remove comment to use SD card
 }
 unsigned long lastWrite(0);
+void dateTime(uint16_t* date, uint16_t* time) {
+  DateTime now = rtc.now();
 
-void checkSizeFile(String startFile, int startNumber) {
+  // return date using FAT_DATE macro to format fields
+  *date = FAT_DATE(now.year(), now.month(), now.day());
+
+  // return time using FAT_TIME macro to format fields
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
+}
+void checkSizeFiles(String startFile, int startNumber) {
 
   String extension = ".txt";
   String fileName = startFile + "_" + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
-
-  int i = 0;
-  if (fileSize > 4096) {
-
-    File newFile = SD.open(getLogFileName(startFile, 1));
-    newFile.write(file);
+  if (fileSize > 200) {
+    String newFileName = getLogFileName(startFile, 1);
+    File newFile = SD.open(newFileName, FILE_WRITE);
+    size_t n;
+    uint8_t buf[64];
+    while ((n = file.read(buf, sizeof(buf))) > 0) {
+      newFile.write(buf, n);
+    }
     newFile.close();
     file.close();
     SD.remove(fileName);
@@ -42,19 +52,21 @@ void checkSizeFile(String startFile, int startNumber) {
 String getLogFileName(String startFile, int startNumber) {
   String extension = ".txt";
   String fileName = startFile + "_" + startNumber + extension;
-  File file = SD.open(fileName);
+  File file = SD.open(fileName, FILE_WRITE);
   int fileSize = file.size();
   file.close();
   int i = 0;
-  while (fileSize > 4096) {
+  while (fileSize > 200) {
     fileName = startFile + "_" + (startNumber + i) + extension;
-    file = SD.open(fileName);
+    file = SD.open(fileName, FILE_WRITE);
     fileSize = file.size();
     file.close();
     i++;
   }
   return fileName;
 }
+
+
 
 bool SDWriteError = false; //remove comment to use SD card
 
@@ -63,31 +75,30 @@ void writeValues(bool sd) {
   if ((millis() - lastWrite) / 1000 > (2)) {
     lastWrite = millis();
     if (sd) {
-
-      if (RTC.read(tm)) {
-        String year = String(tmYearToCalendar(tm.Year) - 2000);
-        String month = String(tm.Month);
-        String day = String(tm.Day);
-        String startFile = year + month + day;
-        checkSizeFile(startFile, 0);
-        String fileName = startFile + "_" + 0 + ".txt";
+      if (rtc.begin()) {
+        DateTime now = rtc.now();
+        SdFile::dateTimeCallback(dateTime);
+        String year = String(now.year() - 2000);
+        String month = String(now.month());
+        String day = String(now.day());
+        String startFiles = year + month + day;
+        checkSizeFiles(startFiles, 0);
+        String fileName = startFiles + "_" + 0 + ".txt";
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
-          Serial.println(fileName);
-          Serial.println(logFile.size());
           SDWriteError = false;
           logFile.print(F("["));
-          logFile.print(tm.Day, DEC);
+          logFile.print(now.day(), DEC);
           logFile.print(F("/"));
-          logFile.print(tm.Month, DEC);
+          logFile.print(now.month(), DEC);
           logFile.print(F("/"));
-          logFile.print(tmYearToCalendar(tm.Year), DEC);
+          logFile.print(now.year());
           logFile.print(F(" "));
-          logFile.print(tm.Hour, DEC);
+          logFile.print(now.hour(), DEC);
           logFile.print(F(":"));
-          logFile.print(tm.Minute, DEC);
+          logFile.print(now.minute(), DEC);
           logFile.print(F(":"));
-          logFile.print(tm.Second, DEC);
+          logFile.print(now.second(), DEC);
           logFile.print(F("]  "));
           for (int i = 0; i < 2; i++) {
             switch ('L') {
