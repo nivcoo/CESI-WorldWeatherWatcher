@@ -24,17 +24,17 @@ void setup() {
 }
 unsigned long lastWrite(0);
 
-String getLogFileName(String year, String month, String day, int number, int stringSize) {
+String getLogFileName(String year, String month, String day, int number) {
   String extension = ".txt";
   String fileName = year +  month + day + "_" + number + extension;
   File file = SD.open(fileName);
-  int fileSize = file.size() + stringSize;
+  int fileSize = file.size();
   file.close();
   int i = 0;
   while (fileSize > 4096) {
     fileName = year +  month + day + "_" + (number + i) + extension;
     file = SD.open(fileName);
-    fileSize = file.size() + stringSize;
+    fileSize = file.size();
     file.close();
     i++;
   }
@@ -53,7 +53,7 @@ void writeValues(bool sd) {
         String year = String(tmYearToCalendar(tm.Year) - 2000);
         String month = String(tm.Month);
         String day = String(tm.Day);
-        String fileName = getLogFileName(year, month, day, 0, text.length());
+        String fileName = getLogFileName(year, month, day, 0);
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
           SDWriteError = false;
@@ -70,8 +70,8 @@ void writeValues(bool sd) {
           logFile.print(F(":"));
           logFile.print(tm.Second, DEC);
           logFile.print(F("]  "));
-          for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-            switch (sensors[i].name) {
+          for (int i = 0; i < 2; i++) {
+            switch ('L') {
               case 'L':
                 //rtc error
                 logFile.print(F("Light : "));
@@ -89,22 +89,22 @@ void writeValues(bool sd) {
                 logFile.print(F("Pressure (HPa) : "));
                 break;
             }
-            logFile.print(sensors[i].avr);
-            logFileial.print(F("   "));
+            logFile.print(10);
+            logFile.print(F("   "));
           }
           logFile.print(F("|"));
           logFile.print(F("   "));
           logFile.print(F("Latitude : "));
-          logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+          logFile.print(10);
           logFile.print(F("   "));
           logFile.print(F("Longitude : "));
-          logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+          logFile.print(11);
           logFile.print(F("   "));
           logFile.print(F("Altitude (m) : "));
-          logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+          logFile.print(12);
           logFile.print(F("   "));
           logFile.print(F("Satelites : "));
-          logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+          logFile.println(13);
           logFile.close();
         } else {
           SDWriteError = true;

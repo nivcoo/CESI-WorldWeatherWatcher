@@ -312,17 +312,17 @@ bool getSensorValues() {
   return error;
 }
 
-/**String getLogFileName(String year, String month, String day, int number, int stringSize) { //remove comment to use SD card
+/**String getLogFileName(String year, String month, String day, int number) { //remove comment to use SD card
   String extension = ".txt";
   String fileName = year +  month + day + "_" + number + extension;
   File file = SD.open(fileName);
-  int fileSize = file.size() + stringSize;
+  int fileSize = file.size();
   file.close();
   int i = 0;
   while (fileSize > 4096) {
     fileName = year +  month + day + "_" + (number + i) + extension;
     file = SD.open(fileName);
-    fileSize = file.size() + stringSize;
+    fileSize = file.size();
     file.close();
     i++;
   }
@@ -331,7 +331,7 @@ bool getSensorValues() {
 unsigned long lastWrite(0);
 
 void writeValues(bool sd) {
-  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) / 60) ) {
+  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL"))) ) {
     lastWrite = millis();
     if (sd) {
       //write in SD card
@@ -340,7 +340,7 @@ void writeValues(bool sd) {
         String year = String(tmYearToCalendar(tm.Year) - 2000);
         String month = String(tm.Month);
         String day = String(tm.Day);
-        String fileName = getLogFileName(year, month, day, 0, text.length());
+        String fileName = getLogFileName(year, month, day, 0);
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
           SDWriteError = false;
@@ -377,7 +377,7 @@ void writeValues(bool sd) {
                 break;
             }
             logFile.print(sensors[i].avr);
-            logFileial.print(F("   "));
+            logFile.print(F("   "));
           }
           logFile.print(F("|"));
           logFile.print(F("   "));
