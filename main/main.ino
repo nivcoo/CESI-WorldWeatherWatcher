@@ -5,7 +5,7 @@
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
 
-/**#include <SPI.h> //remove comment to use SD card
+/**
   #include <SD.h> //remove comment to use SD card
   #define CHIP 4  //remove comment to use SD card**/
 #define LIGHT_PIN 0

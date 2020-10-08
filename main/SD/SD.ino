@@ -1,11 +1,7 @@
 #define CHIP 4  //remove comment to use SD card
-#include <SPI.h> //remove comment to use SD card
 #include <SD.h> //remove comment to use SD card
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
 
-Sd2Card card; //remove comment to use SD card
-SdVolume volume; //remove comment to use SD card
-SdFile root; //remove comment to use SD card
 
 DS1307RTC clock;
 tmElements_t tm;
@@ -56,6 +52,8 @@ void writeValues(bool sd) {
         String fileName = getLogFileName(year, month, day, 0);
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
+          Serial.println(fileName);
+          Serial.println(logFile.size());
           SDWriteError = false;
           logFile.print(F("["));
           logFile.print(tm.Day, DEC);
