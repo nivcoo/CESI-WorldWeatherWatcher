@@ -1,3 +1,13 @@
+#define MAX_VALUE 3
+#define MODE_NORMAL 0
+#define MODE_ECO 1
+#define MODE_MAINTENANCE 2
+#define MODE_CONFIG 3
+
+#define BUTTON_GREEN 2
+#define BUTTON_RED 3
+
+
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
 #include "src/imported_libs/DS1307RTC/DS1307RTC.h"
@@ -6,53 +16,44 @@
 #include <SoftwareSerial.h>
 //#include <SD.h>
 
-
-
-/**
-  BME280I2C bme;
-  SoftwareSerial SoftSerial(4, 5);
-**/
-
 SoftwareSerial gps(4, 5);
 TinyGPS GPS;
 BME280I2C bme;
-/**Sd2Card card;
-  SdVolume volume;
-  SdFile root;**/
-
 tmElements_t tm;
 DS1307RTC clock;
-Config config(2, "0930A");
+Config config(1, "09A");
 Led leds(8, 9, 1);
-
-
 //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
 byte previousMode = 0;
 byte mode = 0;
 unsigned long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
-bool gpsError = false;
+float gpsLon(0), gpsLat(0), gpsAlt(0);
 
-
-const byte buttonPinGreen PROGMEM = 2;
-const byte buttonPinRed PROGMEM = 3;
-
-int sensorLightValue(0);
-
-float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0), gpsLon(0), gpsLat(0), gpsAlt(0);
+typedef struct {
+  char name;
+  float avr;
+  float values[MAX_VALUE];
+} Sensor;
+Sensor sensors[] {
+  {'L', 0, {}},
+  {'T', 0, {}},
+  {'H', 0, {}},
+  {'P', 0, {}}
+};
 
 void setup()
 {
   Serial.begin(9600);
   gps.begin(9600);
   config.showValues();
-  pinMode(buttonPinRed, INPUT_PULLUP);
-  pinMode(buttonPinGreen, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(buttonPinRed), clickButtonRedEvent, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(buttonPinGreen), clickButtonGreenEvent, CHANGE);
+  pinMode(BUTTON_RED, INPUT_PULLUP);
+  pinMode(BUTTON_GREEN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, RISING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, RISING);
   //setDate("05 10 2020 12:28:35");
-  showDate();
+  //showDate();
 }
 
 bool setDate(const char *str)
@@ -72,19 +73,17 @@ bool setDate(const char *str)
 void showDate()
 {
   if (RTC.read(tm)) {
-    Serial.print(tm.Hour, DEC);
-    Serial.print(F(":"));
-    Serial.print(tm.Minute, DEC);
-    Serial.print(F(":"));
-    Serial.print(tm.Second, DEC);
-    Serial.print(F("  "));
     Serial.print(tm.Day, DEC);
     Serial.print(F("/"));
     Serial.print(tm.Month, DEC);
     Serial.print(F("/"));
     Serial.print(tmYearToCalendar(tm.Year), DEC);
     Serial.print(F(" "));
-    Serial.println(F(" "));
+    Serial.print(tm.Hour, DEC);
+    Serial.print(F(":"));
+    Serial.print(tm.Minute, DEC);
+    Serial.print(F(":"));
+    Serial.print(tm.Second, DEC);
   } else {
     if (RTC.chipPresent()) {
       Serial.println(F("The RTC is stopped. Please run the setDate"));
@@ -106,9 +105,9 @@ void clickButtonRedEvent() {
 
 void pressedButtonGreen() {
   if (mode == 0)
-    changeMode(1);
+    changeMode(MODE_ECO);
   else if (mode == 1)
-    changeMode(0);
+    changeMode(MODE_NORMAL);
 }
 
 void pressedButtonRed() {
@@ -116,7 +115,7 @@ void pressedButtonRed() {
     changeMode(previousMode);
   else {
     previousMode = mode;
-    changeMode(2);
+    changeMode(MODE_MAINTENANCE);
   }
 }
 
@@ -144,29 +143,65 @@ void changeMode(int _mode) {
 }
 
 void checkPressedButton() {
-  if (checkStartPressedButton && digitalRead(buttonPinRed) == 0) {
+  if (checkStartPressedButton && digitalRead(BUTTON_RED) == 0) {
     // go into config mode
-    changeMode(3);
+    changeMode(MODE_CONFIG);
   }
   checkStartPressedButton = false;
   if ((millis() - buttonPressedMs) > (5 * 1000) && buttonPressed) {
 
-    if (digitalRead(buttonPinGreen) == 0) {
+    if (digitalRead(BUTTON_GREEN) == 0) {
       pressedButtonGreen();
-    } else if (digitalRead(buttonPinRed) == 0) {
+    } else if (digitalRead(BUTTON_RED) == 0) {
       pressedButtonRed();
     }
     buttonPressed = false;
   }
 }
 
-unsigned long lastError(0);
+void addValue(float *values, float value) {
+  for (int i = 0; i < MAX_VALUE - 1; i++) {
+    values[i] = values[i + 1];
+  }
+  values[MAX_VALUE - 1] = value;
+}
 
-bool checkError() {
+float getAvr(float *values) {
+  float avr = 0;
+
+  for (int i = 0; i < MAX_VALUE; i++) {
+    avr += values[i];
+  }
+  return (avr / MAX_VALUE);
+}
+
+unsigned long lastSuccess(0);
+
+BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
+BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
+
+
+bool getSensorValues() {
   bool error = false;
   int code = 0;
-  if (!RTC.read(tm)) {
-    code = 1;
+  float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
+  int sensorLightValue = analogRead(0);
+  bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
+  bool updateGPS = false;
+  for (unsigned long start = millis(); millis() - start < 1000;)
+  {
+    while (gps.available())
+    {
+      char c = gps.read();
+      if (GPS.encode(c))
+        updateGPS = true;
+    }
+  }
+
+  if (updateGPS)
+  {
+    unsigned long age;
+    GPS.f_get_position(&gpsLat, &gpsLon, &age);
   }
 
 
@@ -174,30 +209,50 @@ bool checkError() {
   bool sensorTempError = (sensorTempValue < config.getValue(F("MIN_TEMP_AIR")) || sensorTempValue > config.getValue(F("MAX_TEMP_AIR"))) && config.getValue(F("TEMP_AIR"));
   bool sensorPresError = (sensorPresValue < config.getValue(F("PRESSURE_MIN")) || sensorPresValue > config.getValue(F("PRESSURE_MAX"))) && config.getValue(F("PRESSURE"));
   bool sensorHumError = (sensorTempValue < config.getValue(F("HYGR_MINT")) || sensorTempValue > config.getValue(F("HYGR_MAXT"))) && config.getValue(F("HYGR"));
-
-
-  if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
+  if (!RTC.read(tm)) {
+    code = 1;
+  }
+  else if (sensorLightError || sensorTempError || sensorPresError || sensorHumError) {
     code = 2;
   }
-
-  if (!bme.begin())
+  else if (!bme.begin())
   {
     code = 3;
   }
-
-
-  if (gpsError)
+  else if (!updateGPS)
   {
     code = 4;
+  } else {
+    lastSuccess = millis();
   }
 
-  if (!code)
-    lastError = millis();
+  float value = 0;
 
-  if (millis() - lastError > config.getValue(F("TIMEOUT")) * 1000) {
+  for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
 
+    switch (sensors[i].name) {
+      case 'L':
+        value = sensorLightValue;
+        addValue(sensors[i].values, value);
+        break;
+      case 'T':
+        value = sensorTempValue;
+        addValue(sensors[i].values, value);
+        break;
+      case 'H':
+        value = sensorHumValue;
+        addValue(sensors[i].values, value);
+        break;
+      case 'P':
+        value = sensorPresValue;
+        addValue(sensors[i].values, value);
+        break;
+    }
+    sensors[i].avr = getAvr(sensors[i].values);
+  }
+
+  if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT"))) {
     error = true;
-
     switch (code) {
       case 1:
         //rtc error
@@ -215,90 +270,80 @@ bool checkError() {
         //gps error
         leds.color("RED", 1, "YELLOW", 1);
         break;
-
-
-
     }
   }
-
-
-
-
-
-  //gps error
-  //leds.color("RED", 1, "YELLOW", 1);
-  //sensor error
-  //leds.color("RED", 1, "GREEN", 1);
-  //wrong data
-  //leds.color("RED", 1, "GREEN", 3);
-  //sd full
-  //leds.color("RED", 1, "WHITE", 1);
-  //write error in sd
-  //leds.color("RED", 1, "WHITE", 3);
   return error;
 }
-
-
-void getSensorValues() {
-  sensorLightValue = analogRead(0);
-  BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
-  BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
-  bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
-  bool updateGPS = false;
-  for (unsigned long start = millis(); millis() - start < 1000;)
-  {
-    while (gps.available())
-    {
-      char c = gps.read();
-      if (GPS.encode(c)) 
-        updateGPS = true;
+unsigned long lastWrite(0);
+void writeValues(bool sd) {
+  if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")))) {
+    lastWrite = millis();
+    if (sd) {
+      //write in SD card
+    } else {
+      Serial.print(F("["));
+      showDate();
+      Serial.print(F("]  "));
+      for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+        switch (sensors[i].name) {
+          case 'L':
+            //rtc error
+            Serial.print(F("Light : "));
+            break;
+          case 'T':
+            //data error
+            Serial.print(F("Temperature (°C) : "));
+            break;
+          case 'H':
+            //sensor error
+            Serial.print(F("Hygrometry (%) : "));
+            break;
+          case 'P':
+            //gps error
+            Serial.print(F("Pressure (HPa) : "));
+            break;
+        }
+        Serial.print(sensors[i].avr);
+        Serial.print(F("   "));
+      }
+      Serial.print(F("|"));
+      Serial.print(F("   "));
+      Serial.print(F("Latitude : "));
+      Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+      Serial.print(F("   "));
+      Serial.print(F("Longitude : "));
+      Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+      Serial.print(F("   "));
+      Serial.print(F("Altitude (m) : "));
+      Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+      Serial.print(F("   "));
+      Serial.print(F("Satelites : "));
+      Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+     
+      
     }
   }
-
-  if (updateGPS)
-  {
-    gpsError = false;
-    unsigned long age;
-    GPS.f_get_position(&gpsLat, &gpsLon, &age);
-    Serial.print("LAT=");
-    Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
-    Serial.print(" LON=");
-    Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
-    Serial.print(" SAT=");
-    Serial.print(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
-    Serial.print(" ALT=");
-    gpsAlt = GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude()/100;
-    Serial.println(gpsAlt);
-  } else {
-    gpsError = true;
-  }
-
-  /**GPS.stats(&chars, &sentences, &failed);
-    Serial.print(" CHARS=");
-    Serial.print(chars);
-    Serial.print(" SENTENCES=");
-    Serial.print(sentences);
-    Serial.print(" CSUM ERR=");
-    Serial.println(failed);
-    if (chars == 0)
-    Serial.println("** No characters received from GPS: check wiring **");
-    **/
 }
 
 void loop()
 {
   checkPressedButton();
   if (mode != 3) {
-    getSensorValues();
-    if (!checkError()) {
+    if (!getSensorValues()) {
       if (mode == 0) {
         leds.color(F("GREEN"));
+        //true = write in SD card so if SD CARD works put true
+        writeValues(false);
       }
       else if (mode == 1) {
         leds.color(F("BLUE"));
+        //true = write in SD card so if SD CARD works put true
+        writeValues(false);
       }
       else if (mode == 2) {
         leds.color(F("ORANGE"));
+        //true = write in SD card
+        writeValues(false);
       }
     }
   }
@@ -306,17 +351,9 @@ void loop()
     leds.color(F("YELLOW"));
     unsigned long lastActivity = config.getLastActivity();
     //go to normal if inactivity > 30m
-    if ((millis() - lastActivity) / 100 > (30 * 60 * 10)) {
-      changeMode(0);
+    if ((millis() - lastActivity) / 1000 > (30 * 60)) {
+      changeMode(MODE_NORMAL);
     }
     config.waitValues();
   }
-
-
-
-  //leds.color("BLUE", 2);
-  //leds.color("RED");
-
-  //leds.color("RED", 10, "YELLOW", 3);
-  //delay(300);
 }

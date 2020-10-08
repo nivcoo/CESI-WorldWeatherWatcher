@@ -14,7 +14,7 @@ Configuration conf[] {
   {1, "PRESSURE", 0, 1, 1},
   {850, "PRESSURE_MIN", 300, 1100, 2},
   {1080, "PRESSURE_MAX", 300, 1080, 2},
-  {10, "LOG_INTERVALL", 1, 255, 2},
+  {10, "LOG_INTERVAL", 1, 255, 2},
   {4096, "FILE_MAX_SIZE", 1024, 8192, 2},
   {30, "TIMEOUT", 1, 255, 2}
 
@@ -27,11 +27,8 @@ Config::Config(byte version, String batchNumber) :
 {
 	byte versionIndex = get("VERSION", 1);
 	conf[versionIndex].value = version;
-
 	if(version != getValue("VERSION")) 
 		resetValues();
-	
-	
 }
 
 void Config::resetValues()
@@ -62,7 +59,7 @@ String splitString(String data, char separator, int index)
 
 void Config::getVersion() {
 	Serial.print(F("The version of program is : "));
-	Serial.println(getValue("VERSION"));
+	Serial.println(getValue(F("VERSION")));
 	Serial.print(F("The batch number is : "));
 	Serial.println(_batchNumber);
 }
