@@ -398,16 +398,28 @@ void writeValues(bool sd) {
             logFile.print(F("|"));
             logFile.print(F("   "));
             logFile.print(F("Latitude : "));
-            logFile.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+            if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
+              logFile.print("NA");
+            else
+              logFile.print(gpsLat, 6);
             logFile.print(F("   "));
             logFile.print(F("Longitude : "));
-            logFile.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+            if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
+              logFile.print("NA");
+            else
+              logFile.print(gpsLon, 6);
             logFile.print(F("   "));
             logFile.print(F("Altitude (m) : "));
-            logFile.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+            if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
+              logFile.print("NA");
+            else
+              logFile.print(GPS.altitude() / 100, 3);
             logFile.print(F("   "));
             logFile.print(F("Satelites : "));
-            logFile.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+            if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
+              logFile.println("NA");
+            else
+              logFile.println(GPS.satellites());
             logFile.close();
           } else {
             SDWriteError = true;
@@ -450,16 +462,28 @@ void writeValues(bool sd) {
       Serial.print(F("|"));
       Serial.print(F("   "));
       Serial.print(F("Latitude : "));
-      Serial.print(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLat, 6);
+      if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
+        Serial.print("NA");
+      else
+        Serial.print(gpsLat, 6);
       Serial.print(F("   "));
       Serial.print(F("Longitude : "));
-      Serial.print(gpsLon == TinyGPS::GPS_INVALID_F_ANGLE ? 0.0 : gpsLon, 6);
+      if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
+        Serial.print("NA");
+      else
+        Serial.print(gpsLon, 6);
       Serial.print(F("   "));
       Serial.print(F("Altitude (m) : "));
-      Serial.print(GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE ? 0 : GPS.altitude() / 100);
+      if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
+        Serial.print("NA");
+      else
+        Serial.print(GPS.altitude() / 100, 3);
       Serial.print(F("   "));
       Serial.print(F("Satelites : "));
-      Serial.println(GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES ? 0 : GPS.satellites());
+      if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
+        Serial.println("NA");
+      else
+        Serial.println(GPS.satellites());
     }
 
 
