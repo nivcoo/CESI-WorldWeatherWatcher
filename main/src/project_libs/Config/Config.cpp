@@ -93,7 +93,6 @@ void Config::waitValues() {
 		}
 		if(name == "CLOCK" || name == "DATE" || name == "DAY") {
 		    DateTime now = time.now();
-
             if(name == "CLOCK") {
                 String clock = splitString(data, '=', 1);
                 int hour = splitString(clock, ':', 0).toInt();
@@ -115,6 +114,7 @@ void Config::waitValues() {
                 }
                 time.adjust(DateTime(year, month, day, now.hour(), now.minute(), now.second()));
             }
+
             Serial.print(F("The new date is : "));
             now = time.now();
             Serial.print(now.day(), DEC);
@@ -122,6 +122,31 @@ void Config::waitValues() {
             Serial.print(now.month(), DEC);
             Serial.print(F("/"));
             Serial.print(now.year(), DEC);
+            Serial.print(F(" ("));
+            switch (now.dayOfTheWeek()) {
+                case 0:
+                    Serial.print(F("Sunday"));
+                    break;
+                case 1:
+                    Serial.print(F("Monday"));
+                    break;
+                case 2:
+                    Serial.print(F("Tuesday"));
+                    break;
+                case 3:
+                    Serial.print(F("Wednesday"));
+                    break;
+                case 4:
+                    Serial.print(F("Thursday"));
+                    break;
+                case 5:
+                    Serial.print(F("Friday"));
+                    break;
+                case 6:
+                    Serial.print(F("Saturday"));
+                    break;
+            }
+            Serial.print(F(")"));
             Serial.print(F(" "));
             Serial.print(now.hour(), DEC);
             Serial.print(F(":"));
