@@ -480,7 +480,7 @@ void loop()
     if (!errorCode == 0) {
       lastSuccess == millis();
     }
-    if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT"))) {
+    if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT")) / 30) {
       switch (errorCode) {
         case 1:
           //rtc error
@@ -488,7 +488,7 @@ void loop()
           break;
         case 2:
           //data error
-          leds.color(F("RED"), 1, F("GREEN"), 3);
+          leds.color(F("RED"), 1, F("GREEN"), 2);
           break;
         case 3:
           //sensor error
@@ -500,7 +500,7 @@ void loop()
           break;
         case 5:
           //SD card write error
-          leds.color("RED", 1, "WHITE", 3);
+          leds.color("RED", 1, "WHITE", 2);
           break;
         case 6:
           //SD card full

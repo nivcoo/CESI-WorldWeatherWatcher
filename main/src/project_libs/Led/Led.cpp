@@ -61,11 +61,7 @@ void Led::color(String firstColor, byte firstTime, String secondColor, byte seco
     if((actual - temp) / 1000 > time) {
         temp = actual;
         color_change = !color_change;
-
-        if(color_change)
-        	setColor(firstColor);
-        else
-        	setColor(secondColor);
+        setColor((color_change) ? firstColor : secondColor);
     }
 
 
