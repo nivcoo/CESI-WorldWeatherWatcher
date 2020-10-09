@@ -44,14 +44,15 @@ float gpsLon(0), gpsLat(0), gpsAlt(0);
 
 typedef struct {
   char name;
+  bool error;
   float avr;
   float values[MAX_VALUE];
 } Sensor;
 Sensor sensors[] {
-  {'L', 0, {}},
-  {'T', 0, {}},
-  {'H', 0, {}},
-  {'P', 0, {}}
+  {'L', 0, 0, {}},
+  {'T', 0, 0, {}},
+  {'H', 0, 0, {}},
+  {'P', 0, 0, {}}
 };
 
 void setup()
@@ -189,8 +190,7 @@ BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
 BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
 bool gpsEco = false;
-bool getSensorValues() {
-  bool success = true;
+byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
   int sensorLightValue = analogRead(LIGHT_PIN);
@@ -239,65 +239,52 @@ bool getSensorValues() {
       code = 5; //remove comment to use SD card
     } //remove comment to use SD card**/
 
-  else {
-    lastSuccess = millis();
-  }
-
   float value = 0;
 
   for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
 
     switch (sensors[i].name) {
       case 'L':
-        value = sensorLightValue;
-        addValue(sensors[i].values, value);
+        if (sensorLightError)
+          sensors[i].error = true;
+        else {
+          sensors[i].error = false;
+          value = sensorLightValue;
+          addValue(sensors[i].values, value);
+        }
         break;
       case 'T':
-        value = sensorTempValue;
-        addValue(sensors[i].values, value);
+        if (sensorTempError || code == 3)
+          sensors[i].error = true;
+        else {
+          sensors[i].error = false;
+          value = sensorTempValue;
+          addValue(sensors[i].values, value);
+        }
+
         break;
       case 'H':
-        value = sensorHumValue;
-        addValue(sensors[i].values, value);
+        if (sensorHumError || code == 3)
+          sensors[i].error = true;
+        else {
+          sensors[i].error = false;
+          value = sensorHumValue;
+          addValue(sensors[i].values, value);
+        }
         break;
       case 'P':
-        value = sensorPresValue;
-        addValue(sensors[i].values, value);
+        if (sensorPresError || code == 3)
+          sensors[i].error = true;
+        else {
+          sensors[i].error = false;
+          value = sensorPresValue;
+          addValue(sensors[i].values, value);
+        }
         break;
     }
     sensors[i].avr = getAvr(sensors[i].values);
   }
-
-  if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT"))) {
-    success = false;
-    switch (code) {
-      case 1:
-        //rtc error
-        leds.color(F("RED"), 1, F("BLUE"), 1);
-        break;
-      case 2:
-        //data error
-        leds.color(F("RED"), 1, F("GREEN"), 3);
-        break;
-      case 3:
-        //sensor error
-        leds.color(F("RED"), 1, F("GREEN"), 1);
-        break;
-      case 4:
-        //gps error
-        leds.color("RED", 1, "YELLOW", 1);
-        break;
-      case 5:
-        //SD write error
-        leds.color("RED", 1, "WHITE", 3);
-        break;
-      case 6:
-        //SD write error
-        leds.color("RED", 1, "WHITE", 1);
-        break;
-    }
-  }
-  return success;
+  return code;
 }
 
 /**void dateTime(uint16_t* date, uint16_t* time) { //remove comment to use SD card
@@ -402,7 +389,10 @@ void writeValues(bool sd) {
                   logFile.print(F("Pressure (HPa) : "));
                   break;
               }
-              logFile.print(sensors[i].avr);
+              if (sensors[i].error || isnan((sensors[i].avr)))
+                logFile.print("NA");
+              else
+                logFile.print(sensors[i].avr);
               logFile.print(F("   "));
             }
             logFile.print(F("|"));
@@ -450,7 +440,11 @@ void writeValues(bool sd) {
             Serial.print(F("Pressure (HPa) : "));
             break;
         }
-        Serial.print(sensors[i].avr);
+        if (sensors[i].error || isnan((sensors[i].avr)))
+          Serial.print("NA");
+        else
+          Serial.print(sensors[i].avr);
+
         Serial.print(F("   "));
       }
       Serial.print(F("|"));
@@ -473,27 +467,66 @@ void writeValues(bool sd) {
   }
 }
 
+unsigned long lastSensorCheck(0);
+byte errorCode(0);
 void loop()
 {
   checkPressedButton();
   if (mode != 3) {
-    if (getSensorValues()) {
-      if (mode == 0) {
-        leds.color(F("GREEN"));
-        //true = write in SD card so if SD CARD works put true
-        writeValues(false);
-      }
-      else if (mode == 1) {
-        leds.color(F("BLUE"));
-        //true = write in SD card so if SD CARD works put true
-        writeValues(false);
-      }
-      else if (mode == 2) {
-        leds.color(F("ORANGE"));
-        //true = write in SD card
-        writeValues(false);
+    if ((millis() - lastSensorCheck) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
+      lastSensorCheck = millis();
+      errorCode = getSensorValues();
+    }
+    if (!errorCode == 0) {
+      lastSuccess == millis();
+    }
+    if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT"))) {
+      switch (errorCode) {
+        case 1:
+          //rtc error
+          leds.color(F("RED"), 1, F("BLUE"), 1);
+          break;
+        case 2:
+          //data error
+          leds.color(F("RED"), 1, F("GREEN"), 3);
+          break;
+        case 3:
+          //sensor error
+          leds.color(F("RED"), 1, F("GREEN"), 1);
+          break;
+        case 4:
+          //gps error
+          leds.color("RED", 1, "YELLOW", 1);
+          break;
+        case 5:
+          //SD card write error
+          leds.color("RED", 1, "WHITE", 3);
+          break;
+        case 6:
+          //SD card full
+          leds.color("RED", 1, "WHITE", 1);
+          break;
       }
     }
+    if (mode == 0) {
+      if (!errorCode)
+        leds.color(F("GREEN"));
+      //true = write in SD card so if SD CARD works put true
+      writeValues(false);
+    }
+    else if (mode == 1) {
+      if (!errorCode)
+        leds.color(F("BLUE"));
+      //true = write in SD card so if SD CARD works put true
+      writeValues(false);
+    }
+    else if (mode == 2) {
+      if (!errorCode)
+        leds.color(F("ORANGE"));
+      //true = write in SD card
+      writeValues(false);
+    }
+
   }
   else {
     leds.color(F("YELLOW"));
