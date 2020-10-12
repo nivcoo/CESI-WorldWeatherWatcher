@@ -200,13 +200,13 @@ BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
 BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
 bool gpsEco = false;
+bool gpsError = false;
 byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
   int sensorLightValue = analogRead(LIGHT_PIN);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   gpsEco = !gpsEco || mode != MODE_ECO;
-  bool gpsError = false;
 
   if (gpsEco) {
     bool updateGPS = false;
