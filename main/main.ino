@@ -301,7 +301,7 @@ byte getSensorValues() {
   return code;
 }
 #ifdef USE_SD
-void dateTime(uint16_t* date, uint16_t* time) { //remove comment to use SD card
+void dateTime(uint16_t* date, uint16_t* time) {
   DateTime now = rtc.now();
 
   // return date using FAT_DATE macro to format fields
@@ -349,7 +349,7 @@ String getLogFileName(String startFile, int startNumber) {
     i++;
   }
   return fileName;
-} //remove comment to use SD card
+}
 
 #endif
 unsigned long lastWrite(0);
@@ -405,7 +405,7 @@ void writeValues(bool sd) {
                 break;
             }
             if (sensors[i].error || isnan((sensors[i].avr)))
-              logFile.print("NA");
+              logFile.print(F("NA"));
             else
               logFile.print(sensors[i].avr);
             logFile.print(F("   "));
@@ -414,13 +414,13 @@ void writeValues(bool sd) {
           logFile.print(F("   "));
           logFile.print(F("Latitude : "));
           if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
-            logFile.print("NA");
+            logFile.print(F("NA"));
           else
             logFile.print(gpsLat, 6);
           logFile.print(F("   "));
           logFile.print(F("Longitude : "));
           if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
-            logFile.print("NA");
+            logFile.print(F("NA"));
           else
             logFile.print(gpsLon, 6);
           logFile.print(F("   "));
@@ -432,7 +432,7 @@ void writeValues(bool sd) {
           logFile.print(F("   "));
           logFile.print(F("Satelites : "));
           if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
-            logFile.println("NA");
+            logFile.println(F("NA"));
           else
             logFile.println(GPS.satellites());
           logFile.close();
@@ -467,7 +467,7 @@ void writeValues(bool sd) {
             break;
         }
         if (sensors[i].error || isnan((sensors[i].avr)))
-          Serial.print("NA");
+          Serial.print(F("NA"));
         else
           Serial.print(sensors[i].avr);
 
@@ -477,25 +477,25 @@ void writeValues(bool sd) {
       Serial.print(F("   "));
       Serial.print(F("Latitude : "));
       if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
-        Serial.print("NA");
+        Serial.print(F("NA"));
       else
         Serial.print(gpsLat, 6);
       Serial.print(F("   "));
       Serial.print(F("Longitude : "));
       if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
-        Serial.print("NA");
+        Serial.print(F("NA"));
       else
         Serial.print(gpsLon, 6);
       Serial.print(F("   "));
       Serial.print(F("Altitude (m) : "));
       if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
-        Serial.print("NA");
+        Serial.print(F("NA"));
       else
         Serial.print(GPS.altitude() / 100, 3);
       Serial.print(F("   "));
       Serial.print(F("Satelites : "));
       if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
-        Serial.println("NA");
+        Serial.println(F("NA"));
       else
         Serial.println(GPS.satellites());
     }
