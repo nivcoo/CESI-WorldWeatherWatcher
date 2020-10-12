@@ -32,9 +32,8 @@ BME280I2C bme;
 RTC_DS1307 rtc;
 Config config(1, "09A");
 Led leds(LED_PIN_1, LED_PIN_2, 1);
-//0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
-byte previousMode = 0;
-byte mode = 0;
+byte previousMode = MODE_NORMAL;
+byte mode = MODE_NORMAL;
 unsigned long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
@@ -108,14 +107,14 @@ void clickButtonRedEvent() {
 }
 
 void pressedButtonGreen() {
-  if (mode == 0)
+  if (mode == MODE_NORMAL)
     changeMode(MODE_ECO);
-  else if (mode == 1)
+  else if (mode == MODE_ECO)
     changeMode(MODE_NORMAL);
 }
 
 void pressedButtonRed() {
-  if (mode == 2 || mode == 3) {
+  if (mode == MODE_MAINTENANCE || mode == MODE_CONFIG) {
     changeMode(previousMode);
     /**while (!SD.begin(CHIP)) { //remove comment to use SD card
       Serial.println(F("SD Card loading Failed")); //remove comment to use SD card
@@ -132,18 +131,17 @@ void changeMode(int _mode) {
   mode = _mode;
 
   String name = F("");
-  //0 : Normal, 1 : Eco, 2 : Maintenance, 3 : Config
   switch (_mode) {
-    case 0:
+    case MODE_NORMAL:
       name = F("normal");
       break;
-    case 1:
+    case MODE_ECO:
       name = F("eco");
       break;
-    case 2:
+    case MODE_MAINTENANCE:
       name = F("maintenance");
       break;
-    case 3:
+    case MODE_CONFIG:
       name = F("configuration");
       break;
   }
@@ -496,7 +494,7 @@ byte errorCode(0);
 void loop()
 {
   checkPressedButton();
-  if (mode != 3) {
+  if (mode != MODE_CONFIG) {
     if ((millis() - lastSensorCheck) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
       lastSensorCheck = millis();
       errorCode = getSensorValues();
@@ -532,19 +530,19 @@ void loop()
           break;
       }
     }
-    if (mode == 0) {
+    if (mode == MODE_NORMAL) {
       if (!errorCode)
         leds.color(F("GREEN"));
       //true = write in SD card so if SD CARD works put true
       writeValues(false);
     }
-    else if (mode == 1) {
+    else if (mode == MODE_ECO) {
       if (!errorCode)
         leds.color(F("BLUE"));
       //true = write in SD card so if SD CARD works put true
       writeValues(false);
     }
-    else if (mode == 2) {
+    else if (mode == MODE_MAINTENANCE) {
       if (!errorCode)
         leds.color(F("ORANGE"));
       //true = write in SD card
