@@ -206,7 +206,8 @@ byte getSensorValues() {
   int sensorLightValue = analogRead(LIGHT_PIN);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
   gpsEco = !gpsEco || mode != MODE_ECO;
-  
+  bool gpsError = false;
+
   if (gpsEco) {
     bool updateGPS = false;
     for (unsigned long start = millis(); millis() - start < 1000;)
@@ -220,11 +221,13 @@ byte getSensorValues() {
     }
     if (updateGPS)
     {
+      gpsError = false;
       unsigned long age;
       GPS.f_get_position(&gpsLat, &gpsLon, &age);
-    }
+    } else
+      gpsError = true;
   }
- 
+
 
 
   bool sensorLightError = (sensorLightValue < config.getValue(F("LUMIN_LOW")) || sensorLightValue > config.getValue(F("LUMIN_HIGH"))) && config.getValue(F("LUMINO"));
@@ -241,7 +244,7 @@ byte getSensorValues() {
   {
     code = 3;
   }
-  else if(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE|| gpsLon ==  TinyGPS::GPS_INVALID_F_ANGLE)
+  else if (gpsError)
   {
     code = 4;
 
@@ -431,7 +434,7 @@ void writeValues(bool sd) {
             logFile.print("NA");
           else
             float altitude = GPS.altitude() / 100;
-            logFile.print(altitude, 3);
+          logFile.print(altitude, 3);
           logFile.print(F("   "));
           logFile.print(F("Satelites : "));
           if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
@@ -518,7 +521,7 @@ void loop()
   if (mode != MODE_CONFIG) {
 
     int timeCheck = (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 ));
-    
+
     if ((millis() - lastSensorCheck) / 1000 > timeCheck ) {
       lastSensorCheck = millis();
       errorCode = getSensorValues();
