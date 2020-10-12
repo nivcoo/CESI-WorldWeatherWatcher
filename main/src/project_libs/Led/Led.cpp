@@ -30,25 +30,24 @@ byte Led::getIndex(String name) {
 	return result;
 }
 
-
+String oldColor;
 void Led::setColor(String color)
 {
-	byte index = getIndex(color);
-	ChainableLED leds(_pin, _pinData, _ledNumber);
-	leds.setColorRGB(0, colors[index].r, colors[index].g, colors[index].b);
+	if(oldColor != color) {
+		byte index = getIndex(color);
+		ChainableLED leds(_pin, _pinData, _ledNumber);
+		leds.setColorRGB(0, colors[index].r, colors[index].g, colors[index].b);
+	}
+	oldColor = color;
 	
 }
 
 
 
-String oldColor;
+
 void Led::color(String color)
 {
-    if(oldColor != color) {
-	    setColor(color);
-	}
-	oldColor = color;
-	
+	setColor(color);
 }
 
 bool color_change = true;

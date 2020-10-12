@@ -200,14 +200,16 @@ BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
 BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
 bool gpsEco = false;
+bool errorGPS = false;
 byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
   int sensorLightValue = analogRead(LIGHT_PIN);
   bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
-  bool updateGPS = false;
   gpsEco = !gpsEco || mode != MODE_ECO;
+  
   if (gpsEco) {
+    bool updateGPS = false;
     for (unsigned long start = millis(); millis() - start < 1000;)
     {
       while (gps.available())
@@ -219,10 +221,14 @@ byte getSensorValues() {
     }
     if (updateGPS)
     {
+      errorGPS = false;
       unsigned long age;
       GPS.f_get_position(&gpsLat, &gpsLon, &age);
+    } else {
+      errorGPS = true;
     }
   }
+ 
 
 
   bool sensorLightError = (sensorLightValue < config.getValue(F("LUMIN_LOW")) || sensorLightValue > config.getValue(F("LUMIN_HIGH"))) && config.getValue(F("LUMINO"));
@@ -239,7 +245,7 @@ byte getSensorValues() {
   {
     code = 3;
   }
-  else if (!updateGPS)
+  else if (errorGPS)
   {
     code = 4;
 
@@ -511,14 +517,17 @@ void loop()
 {
   checkPressedButton();
   if (mode != MODE_CONFIG) {
-    if ((millis() - lastSensorCheck) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
+
+    int timeCheck = (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 ));
+    
+    if ((millis() - lastSensorCheck) / 1000 > timeCheck ) {
       lastSensorCheck = millis();
       errorCode = getSensorValues();
     }
-    if (!errorCode == 0) {
+    if (!errorCode) {
       lastSuccess == millis();
     }
-    if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT")) / 30) {
+    if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT")) + timeCheck) {
       switch (errorCode) {
         case 1:
           //rtc error
@@ -534,15 +543,15 @@ void loop()
           break;
         case 4:
           //gps error
-          leds.color("RED", 1, "YELLOW", 1);
+          leds.color(F("RED"), 1, F("YELLOW"), 1);
           break;
         case 5:
           //SD card write error
-          leds.color("RED", 1, "WHITE", 2);
+          leds.color(F("RED"), 1, F("WHITE"), 2);
           break;
         case 6:
           //SD card full
-          leds.color("RED", 1, "WHITE", 1);
+          leds.color(F("RED"), 1, F("WHITE"), 1);
           break;
       }
     }
