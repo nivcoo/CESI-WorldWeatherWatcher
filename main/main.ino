@@ -4,7 +4,7 @@
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
-//#define USE_SD //remove comment for use SD Card
+//#define USE_SD //remove comment to use SD card
 #ifdef USE_SD
 
 #include <SD.h>
