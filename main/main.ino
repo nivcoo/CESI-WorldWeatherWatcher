@@ -200,7 +200,6 @@ BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
 BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
 bool gpsEco = false;
-bool errorGPS = false;
 byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
@@ -221,11 +220,8 @@ byte getSensorValues() {
     }
     if (updateGPS)
     {
-      errorGPS = false;
       unsigned long age;
       GPS.f_get_position(&gpsLat, &gpsLon, &age);
-    } else {
-      errorGPS = true;
     }
   }
  
@@ -245,7 +241,7 @@ byte getSensorValues() {
   {
     code = 3;
   }
-  else if (errorGPS)
+  else if(gpsLat == TinyGPS::GPS_INVALID_F_ANGLE|| gpsLon ==  TinyGPS::GPS_INVALID_F_ANGLE)
   {
     code = 4;
 
@@ -434,7 +430,8 @@ void writeValues(bool sd) {
           if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
             logFile.print("NA");
           else
-            logFile.print(GPS.altitude() / 100, 3);
+            float altitude = GPS.altitude() / 100;
+            logFile.print(altitude, 3);
           logFile.print(F("   "));
           logFile.print(F("Satelites : "));
           if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
@@ -496,8 +493,10 @@ void writeValues(bool sd) {
       Serial.print(F("Altitude (m) : "));
       if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
         Serial.print(F("NA"));
-      else
-        Serial.print(GPS.altitude() / 100, 3);
+      else {
+        float altitude = GPS.altitude() / 100;
+        Serial.print(altitude, 3);
+      }
       Serial.print(F("   "));
       Serial.print(F("Satelites : "));
       if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
