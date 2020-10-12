@@ -30,11 +30,11 @@ void dateTime(uint16_t* date, uint16_t* time) {
 }
 void checkSizeFiles(String startFile, int startNumber) {
 
-  String extension = ".txt";
+  String extension = ".log";
   String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName);
   int fileSize = file.size();
-  if (fileSize > 4096) {
+  if (fileSize > 1024) {
     String newFileName = getLogFileName(startFile, 1);
     File newFile = SD.open(newFileName, FILE_WRITE);
     size_t n;
@@ -50,13 +50,13 @@ void checkSizeFiles(String startFile, int startNumber) {
 
 }
 String getLogFileName(String startFile, int startNumber) {
-  String extension = ".txt";
+  String extension = ".log";
   String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName, FILE_WRITE);
   int fileSize = file.size();
   file.close();
   int i = 0;
-  while (fileSize > 4096) {
+  while (fileSize > 1024) {
     fileName = startFile + (startNumber + i) + extension;
     file = SD.open(fileName, FILE_WRITE);
     fileSize = file.size();
