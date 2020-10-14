@@ -4,7 +4,7 @@
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
-//#define USE_SD //remove comment to use SD card
+#define USE_SD //remove comment to use SD card
 #ifdef USE_SD
 
 #include <SD.h>
@@ -74,8 +74,8 @@ void setup()
   config.showValues();
   pinMode(BUTTON_RED, INPUT_PULLUP);
   pinMode(BUTTON_GREEN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, RISING);
-  attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, RISING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, FALLING);
   //showDate();
 }
 
@@ -310,10 +310,10 @@ void dateTime(uint16_t* date, uint16_t* time) {
   DateTime now = rtc.now();
 
   // return date using FAT_DATE macro to format fields
-  date = FAT_DATE(now.year(), now.month(), now.day());
+  *date = FAT_DATE(now.year(), now.month(), now.day());
 
   // return time using FAT_TIME macro to format fields
-  time = FAT_TIME(now.hour(), now.minute(), now.second());
+  *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
 
 void checkSizeFiles(String startFile, int startNumber) {
@@ -366,6 +366,7 @@ void writeValues(bool sd) {
       if (sd) {
         //write in SD card
 #ifdef USE_SD
+        
         DateTime now = rtc.now();
         SdFile::dateTimeCallback(dateTime);
         String year = String(now.year() - 2000);
@@ -432,9 +433,10 @@ void writeValues(bool sd) {
           logFile.print(F("Altitude (m) : "));
           if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
             logFile.print("NA");
-          else
+          else {
             float altitude = GPS.altitude() / 100;
-          logFile.print(altitude, 3);
+            logFile.print(altitude, 3);
+          }
           logFile.print(F("   "));
           logFile.print(F("Satelites : "));
           if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
