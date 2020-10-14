@@ -363,10 +363,79 @@ void writeValues(bool sd) {
   if ((millis() - lastWrite) / 1000 > (60 * config.getValue(F("LOG_INTERVAL")) * ((mode == MODE_ECO) ? 2 : 1 )) ) {
     lastWrite = millis();
     if (rtc.begin()) {
+      DateTime now = rtc.now();
+      String text = "";
+
+      text += F("[");
+      text += now.day();
+      text += F("/");
+      text += now.month();
+      text += F("/");
+      text += now.year();
+      text += F(" ");
+      text += now.hour();
+      text += F(":");
+      text += now.minute();
+      text += F(":");
+      text += now.second();
+      text += F("]  ");
+      for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
+        switch (sensors[i].name) {
+          case 'L':
+            //rtc error
+            text += F("Light : ");
+            break;
+          case 'T':
+            //data error
+            text += F("Temperature (°C) : ");
+            break;
+          case 'H':
+            //sensor error
+            text += F("Hygrometry (%) : ");
+            break;
+          case 'P':
+            //gps error
+            text += F("Pressure (HPa) : ");
+            break;
+        }
+        if (sensors[i].error || isnan((sensors[i].avr)))
+          text += F("NA");
+        else
+          text += (sensors[i].avr);
+        text += F("   ");
+      }
+      text += F("|");
+      text += F("   ");
+      text += F("Latitude : ");
+      if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
+        text += F("NA");
+      else
+        text += gpsLat;
+      text += F("   ");
+      text += F("Longitude : ");
+      if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
+        text += F("NA");
+      else
+        text += gpsLon;
+      text += F("   ");
+      text += F("Altitude (m) : ");
+      if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
+        text += F("NA");
+      else {
+        float altitude = GPS.altitude() / 100;
+        text += altitude;
+      }
+      text += F("   ");
+      text += F("Satelites : ");
+      if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
+        text += F("NA");
+      else
+        text += GPS.satellites();
+
       if (sd) {
         //write in SD card
 #ifdef USE_SD
-        
+
         DateTime now = rtc.now();
         SdFile::dateTimeCallback(dateTime);
         String year = String(now.year() - 2000);
@@ -378,71 +447,7 @@ void writeValues(bool sd) {
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
           SDWriteError = false;
-          logFile.print(F("["));
-          logFile.print(now.day(), DEC);
-          logFile.print(F("/"));
-          logFile.print(now.month(), DEC);
-          logFile.print(F("/"));
-          logFile.print(now.year());
-          logFile.print(F(" "));
-          logFile.print(now.hour(), DEC);
-          logFile.print(F(":"));
-          logFile.print(now.minute(), DEC);
-          logFile.print(F(":"));
-          logFile.print(now.second(), DEC);
-          logFile.print(F("]  "));
-          for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-            switch (sensors[i].name) {
-              case 'L':
-                //rtc error
-                logFile.print(F("Light : "));
-                break;
-              case 'T':
-                //data error
-                logFile.print(F("Temperature (°C) : "));
-                break;
-              case 'H':
-                //sensor error
-                logFile.print(F("Hygrometry (%) : "));
-                break;
-              case 'P':
-                //gps error
-                logFile.print(F("Pressure (HPa) : "));
-                break;
-            }
-            if (sensors[i].error || isnan((sensors[i].avr)))
-              logFile.print(F("NA"));
-            else
-              logFile.print(sensors[i].avr);
-            logFile.print(F("   "));
-          }
-          logFile.print(F("|"));
-          logFile.print(F("   "));
-          logFile.print(F("Latitude : "));
-          if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
-            logFile.print(F("NA"));
-          else
-            logFile.print(gpsLat, 6);
-          logFile.print(F("   "));
-          logFile.print(F("Longitude : "));
-          if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
-            logFile.print(F("NA"));
-          else
-            logFile.print(gpsLon, 6);
-          logFile.print(F("   "));
-          logFile.print(F("Altitude (m) : "));
-          if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
-            logFile.print("NA");
-          else {
-            float altitude = GPS.altitude() / 100;
-            logFile.print(altitude, 3);
-          }
-          logFile.print(F("   "));
-          logFile.print(F("Satelites : "));
-          if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
-            logFile.println(F("NA"));
-          else
-            logFile.println(GPS.satellites());
+          logFile.println(text);
           logFile.close();
         } else {
           SDWriteError = true;
@@ -452,62 +457,7 @@ void writeValues(bool sd) {
 
 
       }
-      Serial.print(F("["));
-      showDate();
-      Serial.print(F("]  "));
-      for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-        switch (sensors[i].name) {
-          case 'L':
-            //rtc error
-            Serial.print(F("Light : "));
-            break;
-          case 'T':
-            //data error
-            Serial.print(F("Temperature (°C) : "));
-            break;
-          case 'H':
-            //sensor error
-            Serial.print(F("Hygrometry (%) : "));
-            break;
-          case 'P':
-            //gps error
-            Serial.print(F("Pressure (HPa) : "));
-            break;
-        }
-        if (sensors[i].error || isnan((sensors[i].avr)))
-          Serial.print(F("NA"));
-        else
-          Serial.print(sensors[i].avr);
-
-        Serial.print(F("   "));
-      }
-      Serial.print(F("|"));
-      Serial.print(F("   "));
-      Serial.print(F("Latitude : "));
-      if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
-        Serial.print(F("NA"));
-      else
-        Serial.print(gpsLat, 6);
-      Serial.print(F("   "));
-      Serial.print(F("Longitude : "));
-      if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
-        Serial.print(F("NA"));
-      else
-        Serial.print(gpsLon, 6);
-      Serial.print(F("   "));
-      Serial.print(F("Altitude (m) : "));
-      if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
-        Serial.print(F("NA"));
-      else {
-        float altitude = GPS.altitude() / 100;
-        Serial.print(altitude, 3);
-      }
-      Serial.print(F("   "));
-      Serial.print(F("Satelites : "));
-      if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
-        Serial.println(F("NA"));
-      else
-        Serial.println(GPS.satellites());
+      Serial.println(text);
     }
 
 
