@@ -316,38 +316,6 @@ void dateTime(uint16_t* date, uint16_t* time) {
   *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
 
-void checkSizeFiles(String startFile, int startNumber, int textSize) {
-
-  String extension = ".log";
-  String fileName = startFile + startNumber + extension;
-  File file = SD.open(fileName);
-  int fileSize = file.size() + textSize;
-  if (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
-    String newFileName = fileName;
-    File newFile = SD.open(newFileName, FILE_WRITE);
-    int newFileSize = newFile.size() + textSize;
-    newFile.close();
-    int i = 0;
-    while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
-      newFileName = startFile + (startNumber + i) + extension;
-      newFile = SD.open(newFileName, FILE_WRITE);
-      fileSize = newFile.size() + textSize;
-      newFile.close();
-      i++;
-    }
-    size_t n;
-    uint8_t buf[64];
-    while ((n = file.read(buf, sizeof(buf))) > 0) {
-      newFile.write(buf, n);
-    }
-    newFile.close();
-    file.close();
-    SD.remove(fileName);
-  } else
-    file.close();
-
-}
-
 
 void checkSizeFiles(String startFile, int startNumber, int textSize) {
 
