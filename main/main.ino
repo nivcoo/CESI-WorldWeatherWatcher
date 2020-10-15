@@ -328,11 +328,45 @@ void checkSizeFiles(String startFile, int startNumber, int textSize) {
     int newFileSize = newFile.size() + textSize;
     newFile.close();
     int i = 0;
-    while (newFileSize > config.getValue(F("FILE_MAX_SIZE"))) {
+    while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
       newFileName = startFile + (startNumber + i) + extension;
       newFile = SD.open(newFileName, FILE_WRITE);
       fileSize = newFile.size() + textSize;
       newFile.close();
+      i++;
+    }
+    size_t n;
+    uint8_t buf[64];
+    while ((n = file.read(buf, sizeof(buf))) > 0) {
+      newFile.write(buf, n);
+    }
+    newFile.close();
+    file.close();
+    SD.remove(fileName);
+  } else
+    file.close();
+
+}
+
+
+void checkSizeFiles(String startFile, int startNumber, int textSize) {
+
+  String extension = ".log";
+  String fileName = startFile + startNumber + extension;
+  File file = SD.open(fileName);
+  int fileSize = file.size() + textSize;
+  int sizeMax = config.getValue(F("FILE_MAX_SIZE"));
+
+  if (fileSize > sizeMax) {
+    String newFileName = fileName;
+    File newFile = file;
+    int i = 0;
+    while (fileSize > sizeMax) {
+      newFileName = startFile + (startNumber + i) + extension;
+      newFile = SD.open(newFileName, FILE_WRITE);
+      fileSize = newFile.size() + textSize;
+      if(fileSize > sizeMax)
+        newFile.close();
       i++;
     }
     size_t n;
