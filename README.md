@@ -1,2 +1,2 @@
 # CESI-WorldWeatherWatcher
-The first CESI Project of embedded system
+Vous pouvez accèder au **WIKI** [**ici**](https://github.com/nivcoo/CESI-WorldWeatherWatcher/wiki)
