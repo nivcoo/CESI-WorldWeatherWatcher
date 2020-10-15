@@ -94,7 +94,7 @@ void showDate()
     Serial.print(F(":"));
     Serial.print(now.minute(), DEC);
     Serial.print(F(":"));
-    Serial.print(now.second(), DEC);
+    Serial.println(now.second(), DEC);
   } else {
     if (rtc.isrunning()) {
       Serial.println(F("The RTC is stopped. Please run the setDate"));
