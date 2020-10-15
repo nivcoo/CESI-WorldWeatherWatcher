@@ -26,15 +26,16 @@
 #define MODE_MAINTENANCE 2
 #define MODE_CONFIG 3
 #define MAX_VALUE 3
+#define VERSION 1
+
+String batchNumber = "09A";
 
 SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
 TinyGPS GPS;
 BME280I2C bme;
 
-
-
 RTC_DS1307 rtc;
-Config config(1, "09A");
+Config config(VERSION, batchNumber);
 Led leds(LED_PIN_1, LED_PIN_2, 1);
 byte previousMode = MODE_NORMAL;
 byte mode = MODE_NORMAL;
@@ -45,7 +46,6 @@ float gpsLon(0), gpsLat(0), gpsAlt(0);
 #ifdef USE_SD
 bool SDWriteError = false;
 #endif
-
 
 typedef struct {
   char name;

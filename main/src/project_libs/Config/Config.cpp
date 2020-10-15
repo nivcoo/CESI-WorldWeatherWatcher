@@ -17,7 +17,6 @@ Configuration conf[] {
   {10, "LOG_INTERVAL", 1, 255, 2},
   {4096, "FILE_MAX_SIZE", 1024, 8192, 2},
   {30, "TIMEOUT", 1, 255, 2}
-
 };
 
 RTC_DS1307 time;
