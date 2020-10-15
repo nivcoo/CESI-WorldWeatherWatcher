@@ -5,7 +5,6 @@
 
 #include "../../imported_libs/EEPROM/EEPROM.h"
 #include "../../imported_libs/RTClib/RTClib.h"
-//#include "/usr/share/arduino/libraries/EEPROM/EEPROM.h"
 struct Configuration {
 	int value;
 	String name;
