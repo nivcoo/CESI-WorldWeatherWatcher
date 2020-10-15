@@ -316,15 +316,26 @@ void dateTime(uint16_t* date, uint16_t* time) {
   *time = FAT_TIME(now.hour(), now.minute(), now.second());
 }
 
-void checkSizeFiles(String startFile, int startNumber) {
+void checkSizeFiles(String startFile, int startNumber, int textSize) {
 
   String extension = ".log";
   String fileName = startFile + startNumber + extension;
   File file = SD.open(fileName);
-  int fileSize = file.size();
+  int fileSize = file.size() + textSize;
   if (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
-    String newFileName = getLogFileName(startFile, 1);
+    String newFileName = fileName;
     File newFile = SD.open(newFileName, FILE_WRITE);
+    int newFileSize = newFile.size() + textSize;
+    newFile.close();
+    int i = 0;
+    while (newFileSize > config.getValue(F("FILE_MAX_SIZE"))) {
+      newFileName = startFile + (startNumber + i) + extension;
+      newFile = SD.open(newFileName, FILE_WRITE);
+      fileSize = newFile.size() + textSize;
+      newFile.close();
+      i++;
+    }
+
     size_t n;
     uint8_t buf[64];
     while ((n = file.read(buf, sizeof(buf))) > 0) {
@@ -336,24 +347,6 @@ void checkSizeFiles(String startFile, int startNumber) {
   } else
     file.close();
 
-}
-
-
-String getLogFileName(String startFile, int startNumber) {
-  String extension = ".log";
-  String fileName = startFile + startNumber + extension;
-  File file = SD.open(fileName, FILE_WRITE);
-  int fileSize = file.size();
-  file.close();
-  int i = 0;
-  while (fileSize > config.getValue(F("FILE_MAX_SIZE"))) {
-    fileName = startFile + (startNumber + i) + extension;
-    file = SD.open(fileName, FILE_WRITE);
-    fileSize = file.size();
-    file.close();
-    i++;
-  }
-  return fileName;
 }
 
 #endif
@@ -442,7 +435,7 @@ void writeValues(bool sd) {
         String month = String(now.month());
         String day = String(now.day());
         String startFiles = year + month + day + "_";
-        checkSizeFiles(startFiles, 0);
+        checkSizeFiles(startFiles, 0, text.length());
         String fileName = startFiles + 0 + ".log";
         File logFile = SD.open(fileName, FILE_WRITE);
         if (logFile) {
