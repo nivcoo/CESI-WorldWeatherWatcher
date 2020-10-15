@@ -335,7 +335,6 @@ void checkSizeFiles(String startFile, int startNumber, int textSize) {
       newFile.close();
       i++;
     }
-
     size_t n;
     uint8_t buf[64];
     while ((n = file.read(buf, sizeof(buf))) > 0) {
