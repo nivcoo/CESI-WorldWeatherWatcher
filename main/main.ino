@@ -45,7 +45,7 @@ bool SDWriteError = false;
 typedef struct {
   char name;
   bool error;
-  float avr;
+  float average;
   float values[MAX_VALUE];
 } Sensor;
 Sensor sensors[] {
@@ -148,9 +148,8 @@ void addValue(float *values, float value) {
   values[MAX_VALUE - 1] = value;
 }
 
-float getAvr(float *values) {
+float getAverage(float *values) {
   float avr = 0;
-
   for (int i = 0; i < MAX_VALUE; i++) {
     avr += values[i];
   }
@@ -164,6 +163,7 @@ BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
 
 bool gpsEco = false;
 bool gpsError = false;
+
 byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
@@ -191,8 +191,6 @@ byte getSensorValues() {
       gpsError = true;
   }
 
-
-
   bool sensorLightError = (sensorLightValue < config.getValue(F("LUMIN_LOW")) || sensorLightValue > config.getValue(F("LUMIN_HIGH"))) && config.getValue(F("LUMINO"));
   bool sensorTempError = (sensorTempValue < config.getValue(F("MIN_TEMP_AIR")) || sensorTempValue > config.getValue(F("MAX_TEMP_AIR"))) && config.getValue(F("TEMP_AIR"));
   bool sensorPresError = (sensorPresValue < config.getValue(F("PRESSURE_MIN")) || sensorPresValue > config.getValue(F("PRESSURE_MAX"))) && config.getValue(F("PRESSURE"));
@@ -215,7 +213,7 @@ byte getSensorValues() {
   else if (SDWriteError) {
     code = 5;
   }
-  /**else if (SDWriteError) {
+  /**else if (SDFull) {
     code = 6;
     }**/
 
@@ -262,7 +260,7 @@ byte getSensorValues() {
         }
         break;
     }
-    sensors[i].avr = getAvr(sensors[i].values);
+    sensors[i].average = getAverage(sensors[i].values);
   }
   return code;
 }
@@ -301,10 +299,11 @@ void writeValues(bool sd) {
             text += F("Pressure (HPa) : ");
             break;
         }
-        if (sensors[i].error || isnan((sensors[i].avr)))
+        float averageValue = sensors[i].average;
+        if (sensors[i].error || isnan((averageValue)))
           text += F("NA");
         else
-          text += (sensors[i].avr);
+          text += averageValue;
         text += F("   ");
       }
       text += F("|");
