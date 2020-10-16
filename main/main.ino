@@ -42,12 +42,12 @@ bool checkStartPressedButton = true;
 float gpsLon(0), gpsLat(0), gpsAlt(0);
 bool SDWriteError = false;
 
-typedef struct {
+struct Sensor {
   char name;
   bool error;
   float average;
   float values[MAX_VALUE];
-} Sensor;
+};
 Sensor sensors[] {
   {'L', 0, 0, {}},
   {'T', 0, 0, {}},
