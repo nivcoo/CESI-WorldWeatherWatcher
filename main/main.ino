@@ -158,9 +158,6 @@ float getAverage(float *values) {
 
 unsigned long lastSuccess(0);
 
-BME280::TempUnit sensorTempUnit(BME280::TempUnit_Celsius);
-BME280::PresUnit sensorPresUnit(BME280::PresUnit_hPa);
-
 bool gpsEco = false;
 bool gpsError = false;
 
@@ -168,7 +165,7 @@ byte getSensorValues() {
   int code = 0;
   float sensorTempValue(0), sensorHumValue(0), sensorPresValue(0);
   int sensorLightValue = analogRead(LIGHT_PIN);
-  bme.read(sensorPresValue, sensorTempValue, sensorHumValue, sensorTempUnit, sensorPresUnit);
+  bme.read(sensorPresValue, sensorTempValue, sensorHumValue, BME280::TempUnit_Celsius, BME280::PresUnit_hPa);
   gpsEco = !gpsEco || mode != MODE_ECO;
 
   if (gpsEco) {
