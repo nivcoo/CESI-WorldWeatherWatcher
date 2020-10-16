@@ -13,6 +13,7 @@ public:
     bool writeTextInSD(String text);
     
     bool begin();
+    void end();
 
 private: 
 

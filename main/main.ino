@@ -91,18 +91,14 @@ void pressedButtonGreen() {
 void pressedButtonRed() {
   if (mode == MODE_MAINTENANCE || mode == MODE_CONFIG) {
     changeMode(previousMode);
-#ifdef USE_SD
-    while (!SD.begin(CHIP)) {
+    while (!card.begin()) {
       Serial.println(F("SD Card loading Failed"));
     }
-#endif
   }
   else {
     previousMode = mode;
     changeMode(MODE_MAINTENANCE);
-#ifdef USE_SD
-    SD.end();
-#endif
+    card.end();
   }
 }
 

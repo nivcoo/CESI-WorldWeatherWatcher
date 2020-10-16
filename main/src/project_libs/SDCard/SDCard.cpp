@@ -73,3 +73,9 @@ void SDCard::checkSizeFiles(String startFile, int startNumber, int textSize) {
 }
 
 
+void SDCard::end() {
+	SD.end();
+}
+
+
+
