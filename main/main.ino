@@ -141,14 +141,14 @@ void checkPressedButton() {
   }
 }
 
-void addValue(float *values, float value) {
+void addSensorValue(float *values, float value) {
   for (int i = 0; i < MAX_VALUE - 1; i++) {
     values[i] = values[i + 1];
   }
   values[MAX_VALUE - 1] = value;
 }
 
-float getAverage(float *values) {
+float getSensorAverage(float *values) {
   float avr = 0;
   for (int i = 0; i < MAX_VALUE; i++) {
     avr += values[i];
@@ -205,7 +205,6 @@ byte getSensorValues() {
   else if (gpsError)
   {
     code = 4;
-
   }
   else if (SDWriteError) {
     code = 5;
@@ -213,11 +212,8 @@ byte getSensorValues() {
   /**else if (SDFull) {
     code = 6;
     }**/
-
   float value = 0;
-
   for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-
     switch (sensors[i].name) {
       case 'L':
         if (sensorLightError)
@@ -225,7 +221,7 @@ byte getSensorValues() {
         else {
           sensors[i].error = false;
           value = sensorLightValue;
-          addValue(sensors[i].values, value);
+          addSensorValue(sensors[i].values, value);
         }
         break;
       case 'T':
@@ -234,9 +230,8 @@ byte getSensorValues() {
         else {
           sensors[i].error = false;
           value = sensorTempValue;
-          addValue(sensors[i].values, value);
+          addSensorValue(sensors[i].values, value);
         }
-
         break;
       case 'H':
         if (sensorHumError || code == 3)
@@ -244,7 +239,7 @@ byte getSensorValues() {
         else {
           sensors[i].error = false;
           value = sensorHumValue;
-          addValue(sensors[i].values, value);
+          addSensorValue(sensors[i].values, value);
         }
         break;
       case 'P':
@@ -253,11 +248,11 @@ byte getSensorValues() {
         else {
           sensors[i].error = false;
           value = sensorPresValue;
-          addValue(sensors[i].values, value);
+          addSensorValue(sensors[i].values, value);
         }
         break;
     }
-    sensors[i].average = getAverage(sensors[i].values);
+    sensors[i].average = getSensorAverage(sensors[i].values);
   }
   return code;
 }
