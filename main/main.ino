@@ -342,9 +342,7 @@ void loop()
 {
   checkPressedButton();
   if (mode != MODE_CONFIG) {
-
     int timeCheck = (60 * config.getValue(F("LOG_INTERVAL")) / (MAX_VALUE + 2) * ((mode == MODE_ECO) ? 2 : 1 ));
-
     if ((millis() - lastSensorCheck) / 1000 > timeCheck ) {
       lastSensorCheck = millis();
       errorCode = getSensorValues();
@@ -398,7 +396,6 @@ void loop()
       //true = write in SD card
       writeValues(false);
     }
-
   }
   else {
     leds.color(F("YELLOW"));
