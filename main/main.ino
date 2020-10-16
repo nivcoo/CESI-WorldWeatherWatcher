@@ -1,16 +1,10 @@
 #include "src/imported_libs/RTClib/RTClib.h"
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
+#include "src/project_libs/SDCard/SDCard.h"
 #include "src/imported_libs/BME280/src/BME280I2C.h"
 #include "src/imported_libs/TinyGPS/TinyGPS.h"
 #include <SoftwareSerial.h>
-#define USE_SD //remove comment to use SD card
-#ifdef USE_SD
-
-#include <SD.h>
-#define CHIP 4
-
-#endif
 
 #define LIGHT_PIN 0
 #define BUTTON_GREEN 2
@@ -28,6 +22,8 @@
 #define MAX_VALUE 3
 #define VERSION 1
 
+#define SD_CHIP 4
+
 String batchNumber = "09A";
 
 SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
@@ -37,15 +33,14 @@ BME280I2C bme;
 RTC_DS1307 rtc;
 Config config(VERSION, batchNumber);
 Led leds(LED_PIN_1, LED_PIN_2, 1);
+SDCard card(SD_CHIP, config.getValue("FILE_MAX_SIZE"));
 byte previousMode = MODE_NORMAL;
 byte mode = MODE_NORMAL;
 unsigned long buttonPressedMs = millis();
 bool buttonPressed = false;
 bool checkStartPressedButton = true;
 float gpsLon(0), gpsLat(0), gpsAlt(0);
-#ifdef USE_SD
 bool SDWriteError = false;
-#endif
 
 typedef struct {
   char name;
@@ -64,44 +59,16 @@ void setup()
 {
   Serial.begin(9600);
   rtc.begin();
-#ifdef USE_SD
-  if (!SD.begin(CHIP)) {
+  if (!card.begin()) {
     Serial.println(F("SD Card loading Failed"));
     while (true);
   }
-#endif
   gps.begin(9600);
   config.showValues();
   pinMode(BUTTON_RED, INPUT_PULLUP);
   pinMode(BUTTON_GREEN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, FALLING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, FALLING);
-  //showDate();
-}
-
-
-void showDate()
-{
-  if (rtc.begin()) {
-    DateTime now = rtc.now();
-    Serial.print(now.day(), DEC);
-    Serial.print(F("/"));
-    Serial.print(now.month(), DEC);
-    Serial.print(F("/"));
-    Serial.print(now.year(), DEC);
-    Serial.print(F(" "));
-    Serial.print(now.hour(), DEC);
-    Serial.print(F(":"));
-    Serial.print(now.minute(), DEC);
-    Serial.print(F(":"));
-    Serial.println(now.second(), DEC);
-  } else {
-    if (rtc.isrunning()) {
-      Serial.println(F("The RTC is stopped. Please run the setDate"));
-    } else {
-      Serial.println(F("RTC read error! Please check."));
-    }
-  }
 }
 
 void clickButtonGreenEvent() {
@@ -249,14 +216,12 @@ byte getSensorValues() {
     code = 4;
 
   }
-#ifdef USE_SD
   else if (SDWriteError) {
     code = 5;
   }
-  else if (SDWriteError) {
-    code = 5;
-  }
-#endif
+  /**else if (SDWriteError) {
+    code = 6;
+  }**/
 
   float value = 0;
 
@@ -305,52 +270,6 @@ byte getSensorValues() {
   }
   return code;
 }
-#ifdef USE_SD
-void dateTime(uint16_t* date, uint16_t* time) {
-  DateTime now = rtc.now();
-
-  // return date using FAT_DATE macro to format fields
-  *date = FAT_DATE(now.year(), now.month(), now.day());
-
-  // return time using FAT_TIME macro to format fields
-  *time = FAT_TIME(now.hour(), now.minute(), now.second());
-}
-
-
-void checkSizeFiles(String startFile, int startNumber, int textSize) {
-
-  String extension = ".log";
-  String fileName = startFile + startNumber + extension;
-  File file = SD.open(fileName);
-  int fileSize = file.size() + textSize;
-  int sizeMax = config.getValue(F("FILE_MAX_SIZE"));
-
-  if (fileSize > sizeMax) {
-    String newFileName = fileName;
-    File newFile = file;
-    int i = 0;
-    while (fileSize > sizeMax) {
-      newFileName = startFile + (startNumber + i) + extension;
-      newFile = SD.open(newFileName, FILE_WRITE);
-      fileSize = newFile.size() + textSize;
-      if(fileSize > sizeMax)
-        newFile.close();
-      i++;
-    }
-    size_t n;
-    uint8_t buf[64];
-    while ((n = file.read(buf, sizeof(buf))) > 0) {
-      newFile.write(buf, n);
-    }
-    newFile.close();
-    file.close();
-    SD.remove(fileName);
-  } else
-    file.close();
-
-}
-
-#endif
 unsigned long lastWrite(0);
 
 void writeValues(bool sd) {
@@ -428,34 +347,11 @@ void writeValues(bool sd) {
 
       if (sd) {
         //write in SD card
-#ifdef USE_SD
-
-        DateTime now = rtc.now();
-        SdFile::dateTimeCallback(dateTime);
-        String year = String(now.year() - 2000);
-        String month = String(now.month());
-        String day = String(now.day());
-        String startFiles = year + month + day + "_";
-        checkSizeFiles(startFiles, 0, text.length());
-        String fileName = startFiles + 0 + ".log";
-        File logFile = SD.open(fileName, FILE_WRITE);
-        if (logFile) {
-          SDWriteError = false;
-          logFile.println(text);
-          logFile.close();
-        } else {
-          SDWriteError = true;
-        }
-#endif
-
-
+        SDWriteError = card.writeTextInSD(text);
 
       }
       Serial.println(text);
     }
-
-
-
   }
 }
 
@@ -507,21 +403,13 @@ void loop()
       if (!errorCode)
         leds.color(F("GREEN"));
       //true = write in SD card
-#ifdef USE_SD
       writeValues(true);
-#else
-      writeValues(false);
-#endif
     }
     else if (mode == MODE_ECO) {
       if (!errorCode)
         leds.color(F("BLUE"));
       //true = write in SD card
-#ifdef USE_SD
       writeValues(true);
-#else
-      writeValues(false);
-#endif
     }
     else if (mode == MODE_MAINTENANCE) {
       if (!errorCode)

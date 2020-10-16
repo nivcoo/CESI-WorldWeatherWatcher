@@ -31,6 +31,8 @@ public:
 private:
 	
 	String _batchNumber;
+	
+	RTC_DS1307 time;
 
     void writeInt(int index, int value, int _size);
     int readInt(int index, int _size);
