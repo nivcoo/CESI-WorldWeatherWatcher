@@ -217,7 +217,7 @@ byte getSensorValues() {
   }
   /**else if (SDWriteError) {
     code = 6;
-  }**/
+    }**/
 
   float value = 0;
 
@@ -273,9 +273,7 @@ void writeValues(bool sd) {
     lastWrite = millis();
     if (rtc.begin()) {
       DateTime now = rtc.now();
-      String text = "";
-
-      text += F("[");
+      String text = F("[");
       text += now.day();
       text += F("/");
       text += now.month();
@@ -291,19 +289,15 @@ void writeValues(bool sd) {
       for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
         switch (sensors[i].name) {
           case 'L':
-            //rtc error
             text += F("Light : ");
             break;
           case 'T':
-            //data error
             text += F("Temperature (°C) : ");
             break;
           case 'H':
-            //sensor error
             text += F("Hygrometry (%) : ");
             break;
           case 'P':
-            //gps error
             text += F("Pressure (HPa) : ");
             break;
         }
@@ -363,9 +357,9 @@ void loop()
     if ((millis() - lastSensorCheck) / 1000 > timeCheck ) {
       lastSensorCheck = millis();
       errorCode = getSensorValues();
-    }
-    if (!errorCode) {
-      lastSuccess == millis();
+      if (!errorCode) {
+        lastSuccess == millis();
+      }
     }
     if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT")) + timeCheck) {
       switch (errorCode) {
