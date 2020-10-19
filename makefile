@@ -24,6 +24,7 @@ endif
 	arduino-cli core install $(PLATFORM)
 
 build:
+	$(shell sed -i 's#batchNumber = "\w*"#batchNumber = "C3W20_555"#' main/main.ino)
 	mkdir -p $(BUILD_DIR)
 	arduino-cli compile --fqbn $(BOARD) main/main.ino --build-path $(BUILD_DIR)
 
