@@ -24,7 +24,7 @@
 
 #define SD_CHIP 4
 
-String batchNumber = "09A";
+String batchNumber = "C3W20_6265";
 
 SoftwareSerial gps(GPS_PIN_1, GPS_PIN_2);
 TinyGPS GPS;

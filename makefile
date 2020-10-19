@@ -13,6 +13,7 @@ PLATFORM = arduino:avr
 BOARD = $(PLATFORM):mega
 PORT = /dev/ttyACM0 
 BUILD_DIR = $(shell pwd)/build
+RANDOM = $(shell bash -c 'echo $$RANDOM')
 
 all: build upload
 
@@ -24,7 +25,7 @@ endif
 	arduino-cli core install $(PLATFORM)
 
 build:
-	$(shell sed -i 's#batchNumber = "\w*"#batchNumber = "C3W20_555"#' main/main.ino)
+	sed -i 's#batchNumber = "\w*"#batchNumber = "C3W20_$(RANDOM)"#' main/main.ino
 	mkdir -p $(BUILD_DIR)
 	arduino-cli compile --fqbn $(BOARD) main/main.ino --build-path $(BUILD_DIR)
 
@@ -32,7 +33,7 @@ upload:
 	arduino-cli upload -t -p $(PORT) --fqbn $(BOARD) --input-dir $(BUILD_DIR)
 
 clean:
-	rm -rf build
+	rm -rf $(BUILD_DIR) main/build
 
 avr-gcc:
 	include avr-ggc.mk 
