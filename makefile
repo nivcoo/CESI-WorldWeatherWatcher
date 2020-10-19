@@ -10,15 +10,17 @@
 
 # Parameters
 PLATFORM = arduino:avr
-BOARD = $(PLATFORM):uno
+BOARD = $(PLATFORM):mega
 PORT = /dev/ttyACM0 
 BUILD_DIR = $(shell pwd)/build
 
-all: build
+all: build upload
 
 
 requirements:
+ifneq "$(shell arduino-cli version | cut -c1-11)" "arduino-cli" 
 	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=~/local/bin sh
+endif
 	arduino-cli core install $(PLATFORM)
 
 build:
@@ -30,3 +32,6 @@ upload:
 
 clean:
 	rm -rf build
+
+avr-gcc:
+	include avr-ggc.mk 
