@@ -43,16 +43,18 @@ float gpsLon(0), gpsLat(0), gpsAlt(0);
 bool SDWriteError = false;
 
 struct Sensor {
-  char name;
+  char id;
+  String name;
   bool error;
   float average;
   float values[MAX_VALUE];
 };
 Sensor sensors[] {
-  {'L', 0, 0, {}},
-  {'T', 0, 0, {}},
-  {'H', 0, 0, {}},
-  {'P', 0, 0, {}}
+  {'L', "Light (Lumen)" , 0, 0, {}},
+  {'T', "Temperature (°C)", 0, 0, {}},
+  {'H',"Hygrometry (%)", 0, 0, {}},
+  {'P',"Pressure (HPa)", 0, 0, {}},
+  {'V',"TEST", 1, 0, {}}
 };
 
 void setup()
@@ -215,7 +217,7 @@ byte getSensorValues() {
     }**/
   float value = 0;
   for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-    switch (sensors[i].name) {
+    switch (sensors[i].id) {
       case 'L':
         if (sensorLightError)
           sensors[i].error = true;
@@ -278,20 +280,7 @@ void writeValues(bool sd) {
       text += now.second();
       text += F("]  ");
       for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
-        switch (sensors[i].name) {
-          case 'L':
-            text += F("Light (Lumen) : ");
-            break;
-          case 'T':
-            text += F("Temperature (°C) : ");
-            break;
-          case 'H':
-            text += F("Hygrometry (%) : ");
-            break;
-          case 'P':
-            text += F("Pressure (HPa) : ");
-            break;
-        }
+        text += sensors[i].name + " : ";
         float averageValue = sensors[i].average;
         if (sensors[i].error || isnan((averageValue)))
           text += F("NA");
