@@ -289,7 +289,7 @@ void writeValues(bool sd) {
           text += F("NA");
         else
           text += averageValue;
-        text += F("   ");
+        text += F("  ");
       }
       text += F("|");
       text += F("  ");
