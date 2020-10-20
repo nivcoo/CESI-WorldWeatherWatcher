@@ -279,7 +279,7 @@ void writeValues(bool sd) {
       for (int i = 0; i < sizeof(sensors) / sizeof(Sensor); i++) {
         switch (sensors[i].name) {
           case 'L':
-            text += F("Light : ");
+            text += F("Light (Lumen) : ");
             break;
           case 'T':
             text += F("Temperature (°C) : ");
