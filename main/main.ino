@@ -299,19 +299,19 @@ void writeValues(bool sd) {
         text += F("   ");
       }
       text += F("|");
-      text += F("   ");
+      text += F("  ");
       text += F("Latitude : ");
       if (gpsLat == TinyGPS::GPS_INVALID_F_ANGLE || gpsLat == 0)
         text += F("NA");
       else
         text += gpsLat;
-      text += F("   ");
+      text += F("  ");
       text += F("Longitude : ");
       if (gpsLon == TinyGPS::GPS_INVALID_F_ANGLE || gpsLon == 0)
         text += F("NA");
       else
         text += gpsLon;
-      text += F("   ");
+      text += F("  ");
       text += F("Altitude (m) : ");
       if (GPS.altitude() == TinyGPS::GPS_INVALID_ALTITUDE)
         text += F("NA");
@@ -319,7 +319,7 @@ void writeValues(bool sd) {
         float altitude = GPS.altitude() / 100;
         text += altitude;
       }
-      text += F("   ");
+      text += F("  ");
       text += F("Satelites : ");
       if (GPS.satellites() == TinyGPS::GPS_INVALID_SATELLITES)
         text += F("NA");
