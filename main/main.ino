@@ -54,7 +54,10 @@ Sensor sensors[] {
   {'T', "Temperature (°C)", 0, 0, {}},
   {'H',"Hygrometry (%)", 0, 0, {}},
   {'P',"Pressure (HPa)", 0, 0, {}},
-  {'V',"TEST", 1, 0, {}}
+  {'W',"Water Temp (°C)", 1, 0, {}},
+  {'C',"Water Current ()", 1, 0, {}},
+  {'F',"Wind Force ()", 1, 0, {}},
+  {'F',"Fine Particles (%)", 1, 0, {}}
 };
 
 void setup()
