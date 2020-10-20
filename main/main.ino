@@ -338,6 +338,7 @@ void writeValues(bool sd) {
 
 unsigned long lastSensorCheck(0);
 byte errorCode(0);
+bool showError = false;
 void loop()
 {
   checkPressedButton();
@@ -348,9 +349,11 @@ void loop()
       errorCode = getSensorValues();
       if (!errorCode) {
         lastSuccess == millis();
+        showError = false;
       }
     }
     if ((millis() - lastSuccess) / 1000 > config.getValue(F("TIMEOUT")) + timeCheck) {
+      showError = true;
       switch (errorCode) {
         case 1:
           //rtc error
@@ -379,19 +382,19 @@ void loop()
       }
     }
     if (mode == MODE_NORMAL) {
-      if (!errorCode)
+      if (!showError)
         leds.color(F("GREEN"));
       //true = write in SD card
       writeValues(true);
     }
     else if (mode == MODE_ECO) {
-      if (!errorCode)
+      if (!showError)
         leds.color(F("BLUE"));
       //true = write in SD card
       writeValues(true);
     }
     else if (mode == MODE_MAINTENANCE) {
-      if (!errorCode)
+      if (!showError)
         leds.color(F("ORANGE"));
       //true = write in SD card
       writeValues(false);
