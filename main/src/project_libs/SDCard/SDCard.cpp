@@ -25,7 +25,9 @@ bool SDCard::writeTextInSD(String text) {
     String year = String(now.year() - 2000);
     String month = String(now.month());
     String day = String(now.day());
-    String startFiles = year + month + day + "_";
+    String date = year + month + day;
+    SD.mkdir(date);
+    String startFiles = date + "/" + date + "_";
     checkSizeFiles(startFiles, 0, text.length());
     String fileName = startFiles + 0 + ".log";
     File logFile = SD.open(fileName, FILE_WRITE);
@@ -39,10 +41,10 @@ bool SDCard::writeTextInSD(String text) {
 }
 
 
-void SDCard::checkSizeFiles(String startFile, int startNumber, int textSize) {
+void SDCard::checkSizeFiles(String startFiles, int startNumber, int textSize) {
 	
 	String extension = ".log";
-  	String fileName = startFile + startNumber + extension;
+  	String fileName = startFiles + startNumber + extension;
  	File file = SD.open(fileName);
   	int fileSize = file.size() + textSize;
   	int sizeMax = _fileSizeMax;
@@ -52,7 +54,7 @@ void SDCard::checkSizeFiles(String startFile, int startNumber, int textSize) {
   	  	File newFile = file;
   	  	int i = 0;
    	 	while (fileSize > sizeMax) {
-  	    	newFileName = startFile + (startNumber + i) + extension;
+  	    	newFileName = startFiles + (startNumber + i) + extension;
   	    	newFile = SD.open(newFileName, FILE_WRITE);
   	    	fileSize = newFile.size() + textSize;
    		   	if(fileSize > sizeMax)

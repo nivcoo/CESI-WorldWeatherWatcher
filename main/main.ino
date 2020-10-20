@@ -59,9 +59,9 @@ void setup()
 {
   Serial.begin(9600);
   rtc.begin();
-  if (!card.begin()) {
+  while (!card.begin()) {
     Serial.println(F("SD Card loading Failed"));
-    while (true);
+    delay(5000);
   }
   gps.begin(9600);
   config.showValues();
@@ -93,6 +93,7 @@ void pressedButtonRed() {
     changeMode(previousMode);
     while (!card.begin()) {
       Serial.println(F("SD Card loading Failed"));
+      delay(5000);
     }
   }
   else {
