@@ -35,5 +35,3 @@ upload:
 clean:
 	rm -rf $(BUILD_DIR) main/build
 
-avr-gcc:
-	include avr-ggc.mk 
