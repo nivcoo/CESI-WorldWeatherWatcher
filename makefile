@@ -4,9 +4,9 @@
 # - Make sure PLATFORM and BOARD correspond to your hardware
 # - arduino-cli with your board installed
 #
-#  If you meet the requirements just run 'make' and then 'make upload'
+#  If you meet the requirements just run 'make'
 #  otherwise you should run 'make requirements' first
-#
+#  (you need to be sudo to install requirements
 
 # Parameters
 PLATFORM = arduino:avr
@@ -20,7 +20,7 @@ all: build upload
 
 requirements:
 ifneq "$(shell arduino-cli version | cut -c1-11)" "arduino-cli" 
-	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=~/local/bin sh
+	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sudo BINDIR=/usr/bin sh
 endif
 	arduino-cli core install $(PLATFORM)
 
