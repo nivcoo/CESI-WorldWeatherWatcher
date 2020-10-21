@@ -25,6 +25,7 @@ endif
 	arduino-cli core install $(PLATFORM)
 
 build:
+	arduino-cli lib install SD
 	sed -i 's#batchNumber = "\w*"#batchNumber = "C3W20_$(RANDOM)"#' main/main.ino
 	mkdir -p $(BUILD_DIR)
 	arduino-cli compile --fqbn $(BOARD) main/main.ino --build-path $(BUILD_DIR)

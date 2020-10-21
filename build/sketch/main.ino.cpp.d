@@ -1,0 +1,34 @@
+/home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/main.ino.cpp.o: \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/main.ino.cpp \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Arduino.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/binary.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/WCharacter.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/WString.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/HardwareSerial.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Stream.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Print.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Printable.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/USBAPI.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Arduino.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/variants/mega/pins_arduino.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/imported_libs/RTClib/RTClib.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/Config/Config.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/Config/../../imported_libs/EEPROM/EEPROM.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/Config/../../imported_libs/RTClib/RTClib.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/Led/Led.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/Led/../../imported_libs/ChainableLED/ChainableLED.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/SDCard/SDCard.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/project_libs/SDCard/../../imported_libs/RTClib/RTClib.h \
+ /home/nicolas/Arduino/libraries/SD/src/SD.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/SdFat.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/Sd2Card.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/Sd2PinMap.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/SdInfo.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/FatStructs.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Print.h \
+ /home/nicolas/Arduino/libraries/SD/src/utility/SdFatUtil.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/imported_libs/BME280/src/BME280I2C.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/imported_libs/BME280/src/BME280.h \
+ /home/nicolas/github/CESI-WorldWeatherWatcher/build/sketch/src/imported_libs/TinyGPS/TinyGPS.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/libraries/SoftwareSerial/src/SoftwareSerial.h \
+ /home/nicolas/.arduino15/packages/arduino/hardware/avr/1.8.3/cores/arduino/Stream.h

@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#line 1 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
 #include "src/imported_libs/RTClib/RTClib.h"
 #include "src/project_libs/Config/Config.h"
 #include "src/project_libs/Led/Led.h"
@@ -60,6 +62,31 @@ Sensor sensors[] {
   {'F',"Fine Particles (%)", 1, 0, {}}
 };
 
+#line 63 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void setup();
+#line 79 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void clickButtonGreenEvent();
+#line 84 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void clickButtonRedEvent();
+#line 89 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void pressedButtonGreen();
+#line 96 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void pressedButtonRed();
+#line 111 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void changeMode(int _mode);
+#line 133 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void checkPressedButton();
+#line 150 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void addSensorValue(float *values, float value);
+#line 157 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+float getSensorAverage(float *values);
+#line 170 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+byte getSensorValues();
+#line 267 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void writeValues(bool sd);
+#line 335 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
+void loop();
+#line 63 "/home/nicolas/github/CESI-WorldWeatherWatcher/main/main.ino"
 void setup()
 {
   Serial.begin(9600);
@@ -403,3 +430,4 @@ void loop()
     config.waitValues();
   }
 }
+
