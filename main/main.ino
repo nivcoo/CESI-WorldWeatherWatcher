@@ -52,12 +52,12 @@ struct Sensor {
 Sensor sensors[] {
   {'L', "Light (Lumen)" , 0, 0, {}},
   {'T', "Temperature (°C)", 0, 0, {}},
-  {'H',"Hygrometry (%)", 0, 0, {}},
-  {'P',"Pressure (HPa)", 0, 0, {}},
-  {'W',"Water Temp (°C)", 1, 0, {}},
-  {'C',"Water Current (Nœuds)", 1, 0, {}},
-  {'F',"Wind Force (Nœuds)", 1, 0, {}},
-  {'F',"Fine Particles (%)", 1, 0, {}}
+  {'H', "Hygrometry (%)", 0, 0, {}},
+  {'P', "Pressure (HPa)", 0, 0, {}},
+  {'W', "Water Temp (°C)", 1, 0, {}},
+  {'C', "Water Current (Nœuds)", 1, 0, {}},
+  {'F', "Wind Force (Nœuds)", 1, 0, {}},
+  {'F', "Fine Particles (%)", 1, 0, {}}
 };
 
 void setup()
@@ -74,6 +74,7 @@ void setup()
   pinMode(BUTTON_GREEN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(BUTTON_RED), clickButtonRedEvent, FALLING);
   attachInterrupt(digitalPinToInterrupt(BUTTON_GREEN), clickButtonGreenEvent, FALLING);
+  
 }
 
 void clickButtonGreenEvent() {

@@ -246,6 +246,25 @@ void Config::showValues() {
 		Serial.print(F(" : "));
 		Serial.println(getValue(name));
 	}
+	
+	if (time.begin()) {
+	    DateTime now = time.now();
+	    String date = F("DATE : ");
+	    date += now.month();
+	    date += F(",");
+	    date += now.day();
+	    date += F(",");
+	    date += now.year();
+	    String clock = F("CLOCK : ");
+	    clock += now.hour();
+	    clock += F(":");
+	    clock += now.minute();
+	    clock += F(":");
+	    clock += now.second();
+	    Serial.println(date);
+	    Serial.println(clock);
+	}
+	
 	Serial.println(F("------------------"));
 }
 
