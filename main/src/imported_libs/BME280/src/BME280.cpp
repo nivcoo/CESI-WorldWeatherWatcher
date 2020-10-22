@@ -86,7 +86,7 @@ bool BME280::ReadChipID()
 
 
 /****************************************************************/
-bool BME280::WriteSettings()
+void BME280::WriteSettings()
 {
    uint8_t ctrlHum, ctrlMeas, config;
 
