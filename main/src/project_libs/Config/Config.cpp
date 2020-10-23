@@ -263,6 +263,8 @@ void Config::showValues() {
 	    clock += now.second();
 	    Serial.println(date);
 	    Serial.println(clock);
+	} else {
+	    Serial.println(F("Please configure the CLOCK with config mode"));
 	}
 	
 	Serial.println(F("------------------"));
